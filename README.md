@@ -61,6 +61,7 @@ python3 chakraview.py
 📜 Disclaimer
 
 This tool is strictly for Educational Purposes and Authorized Security Auditing only. The developer assumes no responsibility for unauthorized use or damages. Users are responsible for complying with local and international cyber laws.
+
 🤝 Contributing
 
 Contributions are welcome. Please ensure that all module updates follow the established naming convention and include proper error handling.
