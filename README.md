@@ -7,6 +7,10 @@
 </p>
 
 ☸️ CHAKRAVIEW
+> [!IMPORTANT]
+> ### 🔍 The "Hidden Surface" Advantage
+> Most security researchers fail to map the full digital footprint by relying on standard subdomain enumeration. **Chakraview** is engineered to uncover the "Invisible Recon"—the historical endpoints, leaked metadata, and infrastructure secrets that are often missed during a standard VAPT or Bug Bounty engagement.
+
 
 Strategic Infrastructure Reconnaissance & Defensive Mapping Framework
 
