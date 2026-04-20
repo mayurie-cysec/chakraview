@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="chakraview.png" alt="Chakraview Banner" width="800">
+</p>
+
 ☸️ CHAKRAVIEW
 
 Strategic Infrastructure Reconnaissance & Defensive Mapping Framework
