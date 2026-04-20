@@ -1,14 +1,4 @@
-# Ignore the virtual environment
-venv/
-env/
-
-# Ignore your secret keys
-.env
-
-# Ignore Python cache files
 __pycache__/
 *.pyc
-
-# Ignore scan results/logs
-*.log
-scans/
+venv/
+.env
