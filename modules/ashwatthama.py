@@ -7,13 +7,17 @@ JUICY_PATHS = ['admin', 'api', 'login', 'wp-admin', 'phpmyadmin',
 
 def run(domain):
     base_domain = ".".join(domain.split('.')[-2:])
-    url = (
-        f"http://web.archive.org/cdx/search/cdx"
-        f"?url={base_domain}/*&output=json&collapse=urlkey"
-        f"&fl=original,timestamp&limit=100"  # increased from 20
-    )
+    url = "https://web.archive.org/cdx/search/cdx"
+    params = {
+        "url": f"{base_domain}/*",
+        "output": "json",
+        "collapse": "urlkey",
+        "fl": "original,timestamp",
+        "limit": "100",  # increased from 20
+    }
     try:
-        r = requests.get(url, timeout=20, headers={'User-Agent': 'ChakraView-Recon'})
+        r = requests.get(url, params=params, timeout=20,
+                         headers={'User-Agent': 'ChakraView-Recon'})
         if r.status_code != 200:
             return {"found": False, "paths": [], "note": "Archive unreachable"}
 

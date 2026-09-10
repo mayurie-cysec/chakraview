@@ -1,11 +1,3 @@
-import os
-from dotenv import load_dotenv
-
-# This tells Python to look at the .env file we just made
-load_dotenv()
-
-# This grabs the value labeled GITHUB_TOKEN from that file
-github_token = os.getenv("fRaUPToOSb84oeF3ATlivtlD0lX2sw1KpnQG")
 import argparse
 import sys
 import os
@@ -16,7 +8,7 @@ import itertools
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from modules import shakuni, sanjaya, ashwatthama, karna, brahmastra
+    from modules import shakuni, sanjaya, ashwatthama, karna, brahmastra, shuddhi
 except ImportError as e:
     print(f"\033[31m[!] Formation Broken: Missing modules. {e}\033[0m")
     sys.exit(1)
@@ -42,6 +34,11 @@ SAVE_POS      = '\033[s'
 RESTORE_POS   = '\033[u'
 CLEAR_LINE    = '\033[2K'
 MOVE_UP       = '\033[1A'
+
+# Third-party text (GitHub logins, PTR records, ipinfo orgs, archived URLs)
+# is purified before it reaches the terminal — see modules/shuddhi.py.
+clean = shuddhi.sanitize
+
 
 def _write(s):
     sys.stdout.write(s)
@@ -235,7 +232,7 @@ def section_header(chakra_num, icon, title, subtitle):
 
 def status_line(label, value, color=None):
     c = color if color else COPPER
-    print(f"  {c}◈ {label}:{RESET} {value}")
+    print(f"  {c}◈ {label}:{RESET} {clean(value)}")
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -300,6 +297,7 @@ def main():
         .replace("https://", "")
         .split('/')[0]
     )
+    target = clean(target)
 
     os.system('clear')
     banner()
@@ -334,11 +332,12 @@ def main():
             if s_data.get('names'):
                 print(f"\n  {SAFFRON}◈ All Architects ({len(s_data['names'])} total):{RESET}")
                 for i, name in enumerate(s_data['names'], 1):
-                    print(f"    {DIM}[{i:03d}]{RESET} {COPPER}{name}{RESET}")
+                    print(f"    {DIM}[{i:03d}]{RESET} {COPPER}{clean(name)}{RESET}")
 
             if s_data.get('repos'):
                 print(f"\n  {SAFFRON}◈ Repositories / Leaks Found:{RESET}")
                 for repo in s_data['repos'][:8]:
+                    repo = clean(repo)
                     tag = (f"{BLOOD}[LEAK]{RESET}" if "[LEAK]" in repo
                            else f"{COPPER}[REPO]{RESET}")
                     print(f"    {tag} {repo}")
@@ -368,7 +367,7 @@ def main():
 
     if j_data.get('cdn'):
         print(f"\n  {BLOOD}{BOLD}⚠  CDN/WAF DETECTED — Real IP is masked!{RESET}")
-        animate_scroll(f"  {BLOOD}   {j_data.get('observation', '')}{RESET}", 0.015)
+        animate_scroll(f"  {BLOOD}   {clean(j_data.get('observation', ''))}{RESET}", 0.015)
     else:
         print(f"\n  {GREEN}✓  Direct IP exposed — No CDN layer detected.{RESET}")
         status_line("Observation", j_data.get('observation', ''), GREEN)
@@ -396,7 +395,7 @@ def main():
         if a_data.get('paths'):
             print(f"\n  {SAFFRON}◈ High-Value Archived Paths:{RESET}")
             for path in a_data['paths']:
-                print(f"    {BLOOD}📜{RESET} {path}")
+                print(f"    {BLOOD}📜{RESET} {clean(path)}")
         else:
             print(f"  {DIM}  No sensitive paths surfaced from the archives.{RESET}")
     else:
@@ -436,9 +435,9 @@ def main():
                            COPPER if sub['proto'] == 'http'  else DIM)
             print(
                 f"    {DIM}[{i:03d}]{RESET} "
-                f"{BOLD}{sub['host']}{RESET}  "
-                f"{proto_color}[{sub['proto'].upper()}]{RESET}  "
-                f"{DIM}→ {sub['ip']}{RESET}"
+                f"{BOLD}{clean(sub['host'])}{RESET}  "
+                f"{proto_color}[{clean(sub['proto']).upper()}]{RESET}  "
+                f"{DIM}→ {clean(sub['ip'])}{RESET}"
             )
     else:
         print(f"  {GREEN}◈ {k_data['intelligence']}{RESET}")
@@ -474,7 +473,7 @@ def main():
     summary_rows = [
         ("Architects Found (GitHub)",  str(s_data.get('count', 0)),           SAFFRON),
         ("Repos / Leaks Detected",     str(len(s_data.get('repos', []))),      BLOOD if s_data.get('repos') else COPPER),
-        ("Target IP",                  j_data.get('ip', 'Unknown'),            COPPER),
+        ("Target IP",                  clean(j_data.get('ip', 'Unknown')),     COPPER),
         ("CDN / WAF Detected",         "YES — Real IP masked" if j_data.get('cdn') else "No",
                                                                                BLOOD if j_data.get('cdn') else GREEN),
         ("Archive Sensitive Paths",    str(len(a_data.get('paths', []))),      BLOOD if a_data.get('paths') else COPPER),
@@ -511,7 +510,8 @@ def main():
     # OPTIONAL REPORT SAVE  (unchanged)
     # ─────────────────────────────────────────────
     if args.report:
-        report_path = f"chakraview_{target}_{time.strftime('%Y%m%d_%H%M%S')}.txt"
+        safe_target = shuddhi.sanitize_filename(target)
+        report_path = f"chakraview_{safe_target}_{time.strftime('%Y%m%d_%H%M%S')}.txt"
         with open(report_path, 'w') as f:
             f.write(f"CHAKRAVIEW REPORT — {target}\n")
             f.write(f"Scan Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -519,24 +519,24 @@ def main():
 
             f.write("[ SHAKUNI — GitHub OSINT ]\n")
             f.write(f"Architects: {s_data.get('count', 0)}\n")
-            f.write(f"Names: {', '.join(s_data.get('names', []))}\n")
+            f.write(f"Names: {', '.join(clean(n) for n in s_data.get('names', []))}\n")
             f.write("Repos/Leaks:\n")
             for r in s_data.get('repos', []):
-                f.write(f"  {r}\n")
+                f.write(f"  {clean(r)}\n")
 
             f.write("\n[ SANJAYA — Infrastructure ]\n")
-            f.write(f"IP: {j_data.get('ip')}\n")
-            f.write(f"Org: {j_data.get('org')}\n")
+            f.write(f"IP: {clean(j_data.get('ip'))}\n")
+            f.write(f"Org: {clean(j_data.get('org'))}\n")
             f.write(f"CDN: {'Yes' if j_data.get('cdn') else 'No'}\n")
-            f.write(f"Reverse DNS: {j_data.get('reverse_dns')}\n")
+            f.write(f"Reverse DNS: {clean(j_data.get('reverse_dns'))}\n")
 
             f.write("\n[ ASHWATTHAMA — Archive Paths ]\n")
             for p in a_data.get('paths', []):
-                f.write(f"  {p}\n")
+                f.write(f"  {clean(p)}\n")
 
             f.write("\n[ KARNA — Live Subdomains ]\n")
             for sub in found_subs:
-                f.write(f"  {sub['url']}  [{sub['ip']}]\n")
+                f.write(f"  {clean(sub['url'])}  [{clean(sub['ip'])}]\n")
 
             f.write("\n[ BRAHMASTRA — Google Dorks ]\n")
             for dork in b_data.get('dorks', []):

@@ -1,6 +1,8 @@
 import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from . import shuddhi
+
 CRITICAL_SUBS = [
     # Admin & Management
     "admin", "administrator", "admins", "adminpanel", "admin1", "admin2",
@@ -135,7 +137,10 @@ def run(domain):
             if result:
                 found.append(result)
                 # Print each found subdomain live as it's discovered
-                print(f"    \033[38;5;208m⚔\033[0m  {result['host']}  [{result['proto'].upper()}]  → {result['ip']}")
+                host  = shuddhi.sanitize(result['host'])
+                proto = shuddhi.sanitize(result['proto']).upper()
+                ip    = shuddhi.sanitize(result['ip'])
+                print(f"    \033[38;5;208m⚔\033[0m  {host}  [{proto}]  → {ip}")
 
     # Sort results: https first, then http, then dns-only
     found.sort(key=lambda x: (x['proto'] == 'dns-only', x['proto'] == 'http', x['host']))
