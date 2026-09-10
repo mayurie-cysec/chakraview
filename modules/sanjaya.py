@@ -11,7 +11,7 @@ def run(target):
         # Reverse DNS
         try:
             result["reverse_dns"] = socket.gethostbyaddr(ip)[0]
-        except:
+        except OSError:
             result["reverse_dns"] = "None"
 
         # ASN + Org lookup via ipinfo.io (free tier, no key needed)

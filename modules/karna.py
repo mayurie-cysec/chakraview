@@ -107,14 +107,14 @@ def check_host(sub, domain):
             s = socket.create_connection((fqdn, 443), timeout=2)
             s.close()
             https_up = True
-        except:
+        except OSError:
             pass
         if not https_up:
             try:
                 s = socket.create_connection((fqdn, 80), timeout=2)
                 s.close()
                 http_up = True
-            except:
+            except OSError:
                 pass
         proto = "https" if https_up else ("http" if http_up else "dns-only")
         return {
@@ -123,7 +123,8 @@ def check_host(sub, domain):
             "proto": proto,
             "url": f"{proto}://{fqdn}" if proto != "dns-only" else fqdn
         }
-    except socket.gaierror:
+    except (OSError, UnicodeError):
+        # gaierror for unknown hosts; UnicodeError for malformed labels.
         return None
 
 def run(domain):

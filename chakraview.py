@@ -299,7 +299,7 @@ def main():
     )
     target = clean(target)
 
-    os.system('clear')
+    _write('\033[2J\033[3J\033[H')   # clear screen without shelling out
     banner()
 
     animate_scroll(
@@ -512,7 +512,9 @@ def main():
     if args.report:
         safe_target = shuddhi.sanitize_filename(target)
         report_path = f"chakraview_{safe_target}_{time.strftime('%Y%m%d_%H%M%S')}.txt"
-        with open(report_path, 'w') as f:
+        # Recon output is sensitive: owner-only, and UTF-8 regardless of locale.
+        fd = os.open(report_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
             f.write(f"CHAKRAVIEW REPORT — {target}\n")
             f.write(f"Scan Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("=" * 60 + "\n\n")
