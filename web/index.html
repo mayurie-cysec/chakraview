@@ -8,7 +8,7 @@
 <title>ChakraView — Strategic Reconnaissance Formation</title>
 <meta name="description" content="ChakraView is an open-source reconnaissance framework for security researchers. Ten chakras map a target's attack surface: subdomain enumeration from eleven passive sources, HTTP fingerprinting, subdomain-takeover detection, DNS and mail-posture auditing, JavaScript secret mining and a generated dork arsenal.">
 <meta name="author" content="mayurie-cysec">
-<meta name="theme-color" content="#09060f">
+<meta name="theme-color" content="#0c0705">
 <meta name="color-scheme" content="dark">
 <link rel="canonical" href="https://github.com/mayurie-cysec/chakraview">
 
@@ -41,7 +41,7 @@
     color:var(--faint)}
   .hero-art{display:flex; align-items:center; justify-content:center; position:relative}
   .hero-art::after{content:""; position:absolute; width:74%; aspect-ratio:1;
-    border-radius:50%; background:radial-gradient(circle,rgba(147,51,234,.3),transparent 68%);
+    border-radius:50%; background:radial-gradient(circle,rgba(255,140,26,.3),transparent 68%);
     filter:blur(44px); z-index:-1}
   @media (max-width:900px){
     .hero-grid{grid-template-columns:1fr; gap:30px}
@@ -54,7 +54,7 @@
   .chakra-card .num{flex-shrink:0; width:38px; height:38px; border-radius:11px;
     display:grid; place-items:center; font-size:12px; font-weight:700;
     letter-spacing:.06em; background:var(--surface); border:1px solid var(--border);
-    color:var(--violet)}
+    color:var(--saffron)}
   .chakra-card h3{font-size:16px; margin:0 0 3px; display:flex; gap:8px;
     align-items:baseline; flex-wrap:wrap}
   .chakra-card h3 em{font-style:normal; font-size:11px; letter-spacing:.14em;
@@ -72,15 +72,15 @@
   .code pre{margin:0; padding:17px 19px; overflow-x:auto; font-family:var(--mono);
     font-size:13.5px; line-height:1.75; color:var(--text)}
   .code .c{color:var(--faint)}
-  .code .f{color:var(--lilac)}
-  .code .p{color:var(--gold)}
+  .code .f{color:var(--marigold)}
+  .code .p{color:var(--brass)}
 
   /* ── Comparison ── */
   .v-row{display:grid; gap:14px; grid-template-columns:1fr auto 1fr;
-    align-items:center; padding:13px 0; border-bottom:1px solid rgba(42,27,61,.6)}
+    align-items:center; padding:13px 0; border-bottom:1px solid rgba(61,38,21,.6)}
   .v-row:last-child{border-bottom:0}
   .v-row .old{color:var(--faint); font-size:14px}
-  .v-row .arrow{color:var(--violet); font-size:15px}
+  .v-row .arrow{color:var(--saffron); font-size:15px}
   .v-row .new{font-size:14.5px}
   @media (max-width:640px){
     .v-row{grid-template-columns:1fr; gap:4px; padding:14px 0}
@@ -211,9 +211,9 @@
           <div class="num">V</div>
           <div>
             <h3>Karna <em>subs</em></h3>
-            <p>Eleven passive sources merged with a resolved bruteforce, behind
-               wildcard-DNS detection so a wildcard domain cannot inflate the
-               results.</p>
+            <p>Eleven passive sources — eight need no API key — merged with a
+               resolved bruteforce, behind wildcard-DNS detection so a wildcard
+               domain cannot inflate the results.</p>
           </div>
         </article>
         <article class="card chakra-card reveal">

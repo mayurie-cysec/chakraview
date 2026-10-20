@@ -74,7 +74,7 @@ python3 chakraview.py --serve                     # web dashboard
 | II | **Sanjaya** | `infra` | Every address the apex answers with, enriched with ASN and org, classified as origin / CDN edge / hyperscaler |
 | III | **Drona** | `dns` | Full record sweep, SPF and DMARC audit, DKIM selector probing, SaaS tenants in TXT, zone-transfer attempt per nameserver |
 | IV | **Ashwatthama** | `archive` | Wayback index sorted into sensitive extensions, admin paths, and query parameters that map to a vulnerability class |
-| V | **Karna** | `subs` | Eight passive sources merged with a resolved bruteforce, behind wildcard-DNS detection |
+| V | **Karna** | `subs` | Eleven passive sources (eight need no API key) merged with a resolved bruteforce, behind wildcard-DNS detection |
 | VI | **Arjuna** | `http` | Status, title, server, tech fingerprint per host, plus exposed `.git`/`.env`, reflected CORS, directory listings, missing security headers |
 | VII | **Ekalavya** | `takeover` | 60+ provider fingerprints for dangling CNAMEs, confirmed by two signals rather than one |
 | VIII | **Abhimanyu** | `ports` | TCP connect scan with banner grabbing, severity-rated against services that should not face the internet |

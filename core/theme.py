@@ -5,45 +5,48 @@ hex values here are the same ones declared as CSS custom properties in
 web/assets/css/chakraview.css. Change a colour in one place and change it in
 the other; CSS_TOKENS exists so `--dump-theme` can prove they still agree.
 
-Deep purple + near-black ground, violet mid-tones, and a saffron/gold accent
-reserved for the chakra itself and for target names.
+A temple sanctum at night: a warm black-brown ground rather than a cold
+black, bhagwa saffron through marigold for the lamplight, brass for the
+chakra and for target names, and sindoor red for what is urgent. Mor-pankh
+teal is the one cool colour, kept for the LOW severity badge so the severity
+scale does not collapse into a single band of orange.
 """
 
 from __future__ import annotations
 
 # ── Ground ────────────────────────────────────────────────────────────────
-VOID = "#09060f"  # page background
-ABYSS = "#0b0713"  # panel background
-SURFACE = "#130c1f"  # raised surface
-BORDER = "#2a1b3d"  # hairline
+VOID = "#0c0705"  # page background
+ABYSS = "#130c07"  # panel background
+SURFACE = "#1d1309"  # raised surface
+BORDER = "#3d2615"  # hairline
 
-# ── Purple scale ──────────────────────────────────────────────────────────
-PURPLE_DEEP = "#5b21b6"
-PURPLE = "#7c3aed"
-VIOLET = "#a855f7"
-LILAC = "#c084fc"
-ORB = "#9333ea"
+# ── Bhagwa scale (ember → saffron → marigold) ─────────────────────────────
+EMBER = "#9a3412"
+BHAGWA = "#e05c0c"
+SAFFRON = "#ff7a18"
+MARIGOLD = "#fcb13f"
+DIYA = "#ff8c1a"
 
-# ── Mahabharata accent (the chakra, the target, victory lines) ────────────
-GOLD = "#fbbf24"
-SAFFRON = "#f59e0b"
-COPPER = "#d97706"
+# ── Sacred accents (the chakra, the target, victory lines) ────────────────
+BRASS = "#f5c542"
+HALDI = "#e8a317"
+SINDOOR = "#c2410c"
 
 # ── Text ──────────────────────────────────────────────────────────────────
-TEXT = "#ede9fe"
-MUTED = "#9f8fc0"
-FAINT = "#6b5b8a"
+TEXT = "#fdf4e3"
+MUTED = "#cdae86"
+FAINT = "#937154"
 
 # ── Severity ──────────────────────────────────────────────────────────────
-SEV_CRITICAL = "#ff3366"
-SEV_HIGH = "#ff7a45"
-SEV_MEDIUM = "#fbbf24"
-SEV_LOW = "#38bdf8"
-SEV_INFO = "#8b7cb8"
+SEV_CRITICAL = "#ff2e4e"
+SEV_HIGH = "#ff7a18"
+SEV_MEDIUM = "#f5c542"
+SEV_LOW = "#2dd4bf"
+SEV_INFO = "#c0a583"
 
-OK = "#34d399"
-WARN = "#fbbf24"
-FAIL = "#ff3366"
+OK = "#93c943"
+WARN = "#f5c542"
+FAIL = "#ff2e4e"
 
 
 # Rich style table. Keys are referenced as style names all over core/ui.py.
@@ -51,22 +54,22 @@ RICH_STYLES: dict[str, str] = {
     "cv.void": VOID,
     "cv.panel": f"on {ABYSS}",
     "cv.border": BORDER,
-    "cv.purple": PURPLE,
-    "cv.violet": VIOLET,
-    "cv.lilac": LILAC,
-    "cv.orb": ORB,
-    "cv.gold": GOLD,
+    "cv.bhagwa": BHAGWA,
     "cv.saffron": SAFFRON,
-    "cv.copper": COPPER,
+    "cv.marigold": MARIGOLD,
+    "cv.diya": DIYA,
+    "cv.brass": BRASS,
+    "cv.haldi": HALDI,
+    "cv.sindoor": SINDOOR,
     "cv.text": TEXT,
     "cv.muted": MUTED,
     "cv.faint": FAINT,
     "cv.ok": OK,
     "cv.warn": WARN,
     "cv.fail": FAIL,
-    "cv.target": f"bold {GOLD}",
-    "cv.chakra": f"bold {VIOLET}",
-    "cv.sparkle": LILAC,
+    "cv.target": f"bold {BRASS}",
+    "cv.chakra": f"bold {SAFFRON}",
+    "cv.sparkle": MARIGOLD,
     "sev.critical": f"bold {SEV_CRITICAL}",
     "sev.high": f"bold {SEV_HIGH}",
     "sev.medium": SEV_MEDIUM,
@@ -80,14 +83,14 @@ CSS_TOKENS: dict[str, str] = {
     "--abyss": ABYSS,
     "--surface": SURFACE,
     "--border": BORDER,
-    "--purple-deep": PURPLE_DEEP,
-    "--purple": PURPLE,
-    "--violet": VIOLET,
-    "--lilac": LILAC,
-    "--orb": ORB,
-    "--gold": GOLD,
+    "--ember": EMBER,
+    "--bhagwa": BHAGWA,
     "--saffron": SAFFRON,
-    "--copper": COPPER,
+    "--marigold": MARIGOLD,
+    "--diya": DIYA,
+    "--brass": BRASS,
+    "--haldi": HALDI,
+    "--sindoor": SINDOOR,
     "--text": TEXT,
     "--muted": MUTED,
     "--faint": FAINT,

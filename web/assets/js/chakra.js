@@ -74,26 +74,26 @@
     var defs = el("defs", {});
 
     var glow = el("radialGradient", { id: "cvGlow" });
-    glow.appendChild(el("stop", { offset: "0%", "stop-color": "#c084fc", "stop-opacity": ".85" }));
-    glow.appendChild(el("stop", { offset: "55%", "stop-color": "#7c3aed", "stop-opacity": ".35" }));
-    glow.appendChild(el("stop", { offset: "100%", "stop-color": "#09060f", "stop-opacity": "0" }));
+    glow.appendChild(el("stop", { offset: "0%", "stop-color": "#fcb13f", "stop-opacity": ".85" }));
+    glow.appendChild(el("stop", { offset: "55%", "stop-color": "#e05c0c", "stop-opacity": ".35" }));
+    glow.appendChild(el("stop", { offset: "100%", "stop-color": "#0c0705", "stop-opacity": "0" }));
     defs.appendChild(glow);
 
     var rim = el("linearGradient", { id: "cvRim", x1: "0", y1: "0", x2: "1", y2: "1" });
-    rim.appendChild(el("stop", { offset: "0%", "stop-color": "#fbbf24" }));
-    rim.appendChild(el("stop", { offset: "50%", "stop-color": "#a855f7" }));
-    rim.appendChild(el("stop", { offset: "100%", "stop-color": "#5b21b6" }));
+    rim.appendChild(el("stop", { offset: "0%", "stop-color": "#f5c542" }));
+    rim.appendChild(el("stop", { offset: "50%", "stop-color": "#ff7a18" }));
+    rim.appendChild(el("stop", { offset: "100%", "stop-color": "#9a3412" }));
     defs.appendChild(rim);
 
     var blade = el("linearGradient", { id: "cvBlade", x1: "0", y1: "0", x2: "0", y2: "1" });
-    blade.appendChild(el("stop", { offset: "0%", "stop-color": "#c084fc", "stop-opacity": ".95" }));
-    blade.appendChild(el("stop", { offset: "100%", "stop-color": "#7c3aed", "stop-opacity": ".25" }));
+    blade.appendChild(el("stop", { offset: "0%", "stop-color": "#fcb13f", "stop-opacity": ".95" }));
+    blade.appendChild(el("stop", { offset: "100%", "stop-color": "#e05c0c", "stop-opacity": ".25" }));
     defs.appendChild(blade);
 
     var hub = el("radialGradient", { id: "cvHub" });
     hub.appendChild(el("stop", { offset: "0%", "stop-color": "#fffbeb" }));
-    hub.appendChild(el("stop", { offset: "45%", "stop-color": "#fbbf24" }));
-    hub.appendChild(el("stop", { offset: "100%", "stop-color": "#d97706" }));
+    hub.appendChild(el("stop", { offset: "45%", "stop-color": "#f5c542" }));
+    hub.appendChild(el("stop", { offset: "100%", "stop-color": "#b45309" }));
     defs.appendChild(hub);
 
     svg.appendChild(defs);
@@ -113,7 +113,7 @@
     if (full) {
       rimGroup.appendChild(el("circle", {
         cx: 200, cy: 200, r: 158, fill: "none",
-        stroke: "#5b21b6", "stroke-width": 1, "stroke-opacity": ".7"
+        stroke: "#9a3412", "stroke-width": 1, "stroke-opacity": ".7"
       }));
       /* 48 teeth around the rim — the serrated edge of the discus. */
       for (var t = 0; t < 48; t++) {
@@ -123,7 +123,7 @@
         rimGroup.appendChild(el("line", {
           x1: p1[0].toFixed(1), y1: p1[1].toFixed(1),
           x2: p2[0].toFixed(1), y2: p2[1].toFixed(1),
-          stroke: t % 4 === 0 ? "#fbbf24" : "#a855f7",
+          stroke: t % 4 === 0 ? "#f5c542" : "#ff7a18",
           "stroke-width": t % 4 === 0 ? 2 : 1,
           "stroke-opacity": t % 4 === 0 ? ".9" : ".5"
         }));
@@ -138,7 +138,7 @@
       bladeGroup.appendChild(el("path", {
         d: bladePath(b, bladeCount, 74, 152, 0.42),
         fill: "url(#cvBlade)",
-        stroke: "#a855f7",
+        stroke: "#ff7a18",
         "stroke-width": full ? 1 : 2,
         "stroke-opacity": ".55"
       }));
@@ -149,7 +149,7 @@
     var midGroup = group("mid");
     midGroup.appendChild(el("circle", {
       cx: 200, cy: 200, r: 96, fill: "none",
-      stroke: "#7c3aed", "stroke-width": full ? 1.6 : 6, "stroke-opacity": ".85"
+      stroke: "#e05c0c", "stroke-width": full ? 1.6 : 6, "stroke-opacity": ".85"
     }));
     if (full) {
       for (var m = 0; m < 24; m++) {
@@ -157,7 +157,7 @@
         midGroup.appendChild(el("circle", {
           cx: pm[0].toFixed(1), cy: pm[1].toFixed(1),
           r: m % 2 === 0 ? 3.2 : 1.6,
-          fill: m % 2 === 0 ? "#c084fc" : "#fbbf24",
+          fill: m % 2 === 0 ? "#fcb13f" : "#f5c542",
           "fill-opacity": m % 2 === 0 ? ".9" : ".65"
         }));
       }
@@ -168,7 +168,7 @@
     var innerGroup = group("inner");
     innerGroup.appendChild(el("circle", {
       cx: 200, cy: 200, r: 58, fill: "none",
-      stroke: "#c084fc", "stroke-width": full ? 1.3 : 5, "stroke-opacity": ".8"
+      stroke: "#fcb13f", "stroke-width": full ? 1.3 : 5, "stroke-opacity": ".8"
     }));
     var spokes = full ? 16 : 6;
     for (var s = 0; s < spokes; s++) {
@@ -178,7 +178,7 @@
       innerGroup.appendChild(el("line", {
         x1: i1[0].toFixed(1), y1: i1[1].toFixed(1),
         x2: i2[0].toFixed(1), y2: i2[1].toFixed(1),
-        stroke: s % 2 === 0 ? "#fbbf24" : "#a855f7",
+        stroke: s % 2 === 0 ? "#f5c542" : "#ff7a18",
         "stroke-width": full ? 1.8 : 3.5,
         "stroke-opacity": ".85"
       }));
@@ -194,7 +194,7 @@
     if (full) {
       hubGroup.appendChild(el("circle", {
         cx: 200, cy: 200, r: 11, fill: "none",
-        stroke: "#7c3aed", "stroke-width": 1.6, "stroke-opacity": ".75"
+        stroke: "#e05c0c", "stroke-width": 1.6, "stroke-opacity": ".75"
       }));
     }
     svg.appendChild(hubGroup);
@@ -207,7 +207,7 @@
         var spark = el("text", {
           x: ps[0].toFixed(1), y: ps[1].toFixed(1),
           "text-anchor": "middle", "dominant-baseline": "central",
-          fill: k % 2 === 0 ? "#fbbf24" : "#c084fc",
+          fill: k % 2 === 0 ? "#f5c542" : "#fcb13f",
           "font-size": k % 2 === 0 ? 15 : 11
         });
         spark.setAttribute("data-flicker", "");

@@ -1,7 +1,8 @@
 /* ==========================================================================
    ChakraView — shared stylesheet
-   Deep purple on near-black, radial orbs, a dot grid, and a saffron accent
-   reserved for the chakra and for target names.
+   A temple sanctum at night: a warm black-brown ground, bhagwa saffron and
+   marigold lamplight, brass for the chakra and for target names, sindoor for
+   what is urgent. Mor-pankh teal is the single cool colour.
 
    The hex values in :root are the same ones declared in core/theme.py, so the
    terminal output and these pages read as one product. Change a colour in one
@@ -10,39 +11,39 @@
 
 :root{
   /* ground */
-  --void:#09060f;
-  --abyss:#0b0713;
-  --surface:#130c1f;
-  --surface-2:#1a1028;
-  --border:#2a1b3d;
-  --border-lit:#3d2857;
+  --void:#0c0705;
+  --abyss:#130c07;
+  --surface:#1d1309;
+  --surface-2:#2a1a0e;
+  --border:#3d2615;
+  --border-lit:#5a3a1e;
 
-  /* purple scale */
-  --purple-deep:#5b21b6;
-  --purple:#7c3aed;
-  --violet:#a855f7;
-  --lilac:#c084fc;
-  --orb:#9333ea;
+  /* bhagwa scale */
+  --ember:#9a3412;
+  --bhagwa:#e05c0c;
+  --saffron:#ff7a18;
+  --marigold:#fcb13f;
+  --diya:#ff8c1a;
 
-  /* Mahabharata accent */
-  --gold:#fbbf24;
-  --saffron:#f59e0b;
-  --copper:#d97706;
+  /* sacred accents */
+  --brass:#f5c542;
+  --haldi:#e8a317;
+  --sindoor:#c2410c;
 
   /* text */
-  --text:#ede9fe;
-  --muted:#9f8fc0;
-  --faint:#6b5b8a;
+  --text:#fdf4e3;
+  --muted:#cdae86;
+  --faint:#937154;
 
   /* severity */
-  --sev-critical:#ff3366;
-  --sev-high:#ff7a45;
-  --sev-medium:#fbbf24;
-  --sev-low:#38bdf8;
-  --sev-info:#8b7cb8;
-  --ok:#34d399;
-  --warn:#fbbf24;
-  --fail:#ff3366;
+  --sev-critical:#ff2e4e;
+  --sev-high:#ff7a18;
+  --sev-medium:#f5c542;
+  --sev-low:#2dd4bf;
+  --sev-info:#c0a583;
+  --ok:#93c943;
+  --warn:#f5c542;
+  --fail:#ff2e4e;
 
   --radius:14px;
   --radius-lg:20px;
@@ -66,10 +67,10 @@ body{
   /* Two fixed radial orbs under a dot grid. Fixed attachment keeps the orbs
      anchored to the viewport so the grid is what appears to move on scroll. */
   background-image:
-    radial-gradient(circle at 15% 4%,  rgba(147,51,234,.22), transparent 44%),
-    radial-gradient(circle at 88% 18%, rgba(124,58,237,.16), transparent 42%),
-    radial-gradient(circle at 50% 96%, rgba(168,85,247,.13), transparent 46%),
-    radial-gradient(rgba(168,85,247,.085) 1px, transparent 1px);
+    radial-gradient(circle at 15% 4%,  rgba(255,140,26,.22), transparent 44%),
+    radial-gradient(circle at 88% 18%, rgba(224,92,12,.16), transparent 42%),
+    radial-gradient(circle at 50% 96%, rgba(255,122,24,.13), transparent 46%),
+    radial-gradient(rgba(255,122,24,.085) 1px, transparent 1px);
   background-size:auto,auto,auto,24px 24px;
   background-attachment:fixed,fixed,fixed,fixed;
   overflow-x:hidden;          /* item 1: no horizontal scroll, anywhere */
@@ -79,10 +80,10 @@ img,svg,video{max-width:100%; height:auto}
 h1,h2,h3,h4{line-height:1.18; letter-spacing:-.018em; margin:0 0 .5em}
 p{margin:0 0 1em}
 
-a{color:var(--lilac); text-decoration:none; transition:color .18s var(--ease)}
-a:hover{color:var(--gold)}
+a{color:var(--marigold); text-decoration:none; transition:color .18s var(--ease)}
+a:hover{color:var(--brass)}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{
-  outline:2px solid var(--violet); outline-offset:3px; border-radius:6px
+  outline:2px solid var(--saffron); outline-offset:3px; border-radius:6px
 }
 
 code,kbd,.mono{font-family:var(--mono); font-size:.88em}
@@ -91,31 +92,31 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
   overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
 
 /* Skip link — keyboard users should not have to tab the whole nav. */
-.skip{position:absolute; left:-9999px; top:0; z-index:100; background:var(--purple);
+.skip{position:absolute; left:-9999px; top:0; z-index:100; background:var(--bhagwa);
   color:#fff; padding:10px 18px; border-radius:0 0 10px 0}
 .skip:focus{left:0}
 
 /* ─────────────────────────────── Header ─────────────────────────────────── */
 .site-head{
   position:sticky; top:0; z-index:40;
-  background:rgba(9,6,15,.82); backdrop-filter:blur(14px) saturate(140%);
+  background:rgba(12,7,5,.82); backdrop-filter:blur(14px) saturate(140%);
   border-bottom:1px solid var(--border);
 }
 .nav{display:flex; align-items:center; gap:10px; padding:14px 0}
 
 /* item 11: the logo is a link home on every page */
 .brand{display:inline-flex; align-items:center; gap:11px; flex-shrink:0}
-.brand:hover .brand-mark{filter:drop-shadow(0 0 12px rgba(168,85,247,.65))}
+.brand:hover .brand-mark{filter:drop-shadow(0 0 12px rgba(255,122,24,.65))}
 .brand-mark{width:36px; height:36px; transition:filter .25s var(--ease)}
 .brand-text{font-size:17px; font-weight:700; letter-spacing:.17em; color:var(--text)}
-.brand-text span{color:var(--violet)}
+.brand-text span{color:var(--saffron)}
 .brand-ver{font-size:10.5px; letter-spacing:.14em; color:var(--faint);
   border:1px solid var(--border); border-radius:999px; padding:2px 7px}
 
 .nav-links{display:flex; gap:6px; margin-left:auto; align-items:center; flex-wrap:wrap}
 .nav-links a{font-size:14px; color:var(--muted); padding:8px 13px; border-radius:9px}
 .nav-links a:hover{color:var(--text); background:var(--surface)}
-.nav-links a[aria-current="page"]{color:var(--lilac); background:var(--surface)}
+.nav-links a[aria-current="page"]{color:var(--marigold); background:var(--surface)}
 
 @media (max-width:760px){
   .nav-links a{padding:7px 9px; font-size:13px}
@@ -136,14 +137,14 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
 }
 .btn:active{transform:translateY(1px)}
 .btn-primary{
-  background:linear-gradient(135deg,var(--purple),var(--violet));
-  color:#fff; box-shadow:0 6px 24px -8px rgba(124,58,237,.75);
+  background:linear-gradient(135deg,var(--bhagwa),var(--saffron));
+  color:#fff; box-shadow:0 6px 24px -8px rgba(224,92,12,.75);
 }
-.btn-primary:hover{color:#fff; box-shadow:0 10px 32px -8px rgba(168,85,247,.9)}
+.btn-primary:hover{color:#fff; box-shadow:0 10px 32px -8px rgba(255,122,24,.9)}
 .btn-ghost{background:var(--surface); color:var(--text); border-color:var(--border)}
-.btn-ghost:hover{color:var(--text); border-color:var(--violet); background:var(--surface-2)}
-.btn-gold{background:linear-gradient(135deg,var(--saffron),var(--gold)); color:#1a1004}
-.btn-gold:hover{color:#1a1004; box-shadow:0 10px 30px -10px rgba(251,191,36,.8)}
+.btn-ghost:hover{color:var(--text); border-color:var(--saffron); background:var(--surface-2)}
+.btn-gold{background:linear-gradient(135deg,var(--haldi),var(--brass)); color:#2a1505}
+.btn-gold:hover{color:#2a1505; box-shadow:0 10px 30px -10px rgba(245,197,66,.8)}
 .btn[disabled],.btn[aria-disabled="true"]{opacity:.5; cursor:not-allowed; transform:none}
 .btn-sm{padding:8px 15px; font-size:13.5px; border-radius:9px}
 
@@ -151,7 +152,9 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
 /* The animated Sudarshana Chakra. Rings counter-rotate at different speeds so
    the wheel reads as one object with depth rather than a single spinning
    image. Every ring stops under prefers-reduced-motion. */
-.chakra{display:block; overflow:visible}
+/* Block-level, so text-align on an ancestor cannot centre it — it has to
+   centre itself. Harmless where the parent is already a centred flex row. */
+.chakra{display:block; overflow:visible; margin-inline:auto}
 .chakra-glow{filter:blur(34px); opacity:.6}
 
 .chakra [data-spin]{transform-box:fill-box; transform-origin:center}
@@ -175,10 +178,10 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
 }
 
 /* ─────────────────────────────── Sparkles ───────────────────────────────── */
-.spark{display:inline-block; color:var(--lilac); line-height:1}
+.spark{display:inline-block; color:var(--marigold); line-height:1}
 .spark-field{position:absolute; inset:0; pointer-events:none; overflow:hidden}
 .spark-field i{
-  position:absolute; color:var(--lilac); font-size:11px; opacity:0;
+  position:absolute; color:var(--marigold); font-size:11px; opacity:0;
   animation:cv-twinkle 4.5s ease-in-out infinite;
 }
 @keyframes cv-twinkle{
@@ -193,26 +196,26 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
 .eyebrow{
   display:inline-flex; align-items:center; gap:8px;
   font-size:11.5px; font-weight:600; letter-spacing:.26em; text-transform:uppercase;
-  color:var(--violet); margin:0 0 14px;
+  color:var(--saffron); margin:0 0 14px;
 }
 .section h2{font-size:clamp(25px,3.6vw,38px); margin:0 0 12px}
 .section-head p{color:var(--muted); font-size:16.5px; margin:0}
 .gradient-text{
-  background:linear-gradient(104deg,var(--gold) 0%,var(--lilac) 48%,var(--violet) 100%);
+  background:linear-gradient(104deg,var(--brass) 0%,var(--marigold) 48%,var(--saffron) 100%);
   -webkit-background-clip:text; background-clip:text;
-  -webkit-text-fill-color:transparent; color:var(--gold);
+  -webkit-text-fill-color:transparent; color:var(--brass);
 }
 
 /* ─────────────────────────────── Cards ──────────────────────────────────── */
 .card{
-  background:linear-gradient(180deg,rgba(26,16,40,.72),rgba(11,7,19,.72));
+  background:linear-gradient(180deg,rgba(42,26,14,.72),rgba(19,12,7,.72));
   border:1px solid var(--border); border-radius:var(--radius-lg);
   padding:24px; position:relative; overflow:hidden;
   transition:border-color .25s var(--ease), transform .25s var(--ease);
 }
 .card::before{
   content:""; position:absolute; inset:0 0 auto; height:1px;
-  background:linear-gradient(90deg,transparent,var(--violet),transparent);
+  background:linear-gradient(90deg,transparent,var(--saffron),transparent);
   opacity:.55;
 }
 .card:hover{border-color:var(--border-lit); transform:translateY(-3px)}
@@ -229,26 +232,26 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
   background:var(--abyss);
 }
 table{border-collapse:collapse; width:100%; min-width:640px; font-size:14px}
-th,td{text-align:left; padding:11px 14px; border-bottom:1px solid rgba(42,27,61,.62);
+th,td{text-align:left; padding:11px 14px; border-bottom:1px solid rgba(61,38,21,.62);
   vertical-align:top}
 th{
   font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);
   background:var(--surface); position:sticky; top:0; z-index:1; white-space:nowrap;
 }
 tr:last-child td{border-bottom:0}
-tbody tr:hover{background:rgba(124,58,237,.07)}
-td code{color:var(--lilac); word-break:break-all}
+tbody tr:hover{background:rgba(224,92,12,.07)}
+td code{color:var(--marigold); word-break:break-all}
 
 /* ─────────────────────────────── Severity ───────────────────────────────── */
 .sev{
   display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.1em;
   text-transform:uppercase; padding:3px 8px; border-radius:5px; white-space:nowrap;
 }
-.sev.critical{background:rgba(255,51,102,.16); color:var(--sev-critical); border:1px solid rgba(255,51,102,.42)}
-.sev.high    {background:rgba(255,122,69,.16); color:var(--sev-high);     border:1px solid rgba(255,122,69,.42)}
-.sev.medium  {background:rgba(251,191,36,.14); color:var(--sev-medium);   border:1px solid rgba(251,191,36,.4)}
-.sev.low     {background:rgba(56,189,248,.14); color:var(--sev-low);      border:1px solid rgba(56,189,248,.38)}
-.sev.info    {background:rgba(139,124,184,.14);color:var(--sev-info);     border:1px solid rgba(139,124,184,.36)}
+.sev.critical{background:rgba(255,46,78,.16); color:var(--sev-critical); border:1px solid rgba(255,46,78,.42)}
+.sev.high    {background:rgba(255,122,24,.16); color:var(--sev-high);     border:1px solid rgba(255,122,24,.42)}
+.sev.medium  {background:rgba(245,197,66,.14); color:var(--sev-medium);   border:1px solid rgba(245,197,66,.4)}
+.sev.low     {background:rgba(45,212,191,.14); color:var(--sev-low);      border:1px solid rgba(45,212,191,.38)}
+.sev.info    {background:rgba(192,165,131,.14);color:var(--sev-info);     border:1px solid rgba(192,165,131,.36)}
 
 /* ─────────────────────────────── Forms ─────────────────────────────────── */
 label{display:block; font-size:11.5px; letter-spacing:.12em; text-transform:uppercase;
@@ -262,12 +265,12 @@ input::placeholder{color:var(--faint)}
 input:hover,select:hover{border-color:var(--border-lit)}
 .check{display:flex; align-items:center; gap:9px; font-size:14px; color:var(--muted);
   text-transform:none; letter-spacing:0; margin:0; cursor:pointer}
-.check input{width:16px; height:16px; accent-color:var(--violet); flex-shrink:0}
+.check input{width:16px; height:16px; accent-color:var(--saffron); flex-shrink:0}
 
 /* ─────────────────────────────── Meter ─────────────────────────────────── */
 .meter{height:8px; border-radius:99px; background:var(--surface); overflow:hidden}
 .meter i{display:block; height:100%; border-radius:99px;
-  background:linear-gradient(90deg,var(--purple),var(--violet),var(--gold));
+  background:linear-gradient(90deg,var(--bhagwa),var(--saffron),var(--brass));
   transition:width .6s var(--ease)}
 
 /* ─────────────────────────────── Pills ─────────────────────────────────── */
@@ -277,12 +280,12 @@ input:hover,select:hover{border-color:var(--border-lit)}
 
 /* ─────────────────────────────── Notice ────────────────────────────────── */
 .notice{
-  border:1px solid var(--border); border-left:3px solid var(--gold);
-  background:rgba(251,191,36,.055); border-radius:var(--radius);
+  border:1px solid var(--border); border-left:3px solid var(--brass);
+  background:rgba(245,197,66,.055); border-radius:var(--radius);
   padding:15px 18px; color:var(--muted); font-size:14.5px;
 }
-.notice strong{color:var(--gold)}
-.notice.danger{border-left-color:var(--sev-critical); background:rgba(255,51,102,.055)}
+.notice strong{color:var(--brass)}
+.notice.danger{border-left-color:var(--sev-critical); background:rgba(255,46,78,.055)}
 .notice.danger strong{color:var(--sev-critical)}
 
 /* ─────────────────────────────── Footer ────────────────────────────────── */
@@ -290,11 +293,11 @@ input:hover,select:hover{border-color:var(--border-lit)}
   color:var(--faint); font-size:14px}
 .foot-grid{display:grid; gap:30px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
 .foot-grid h3{font-size:11.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--violet); margin:0 0 12px}
+  color:var(--saffron); margin:0 0 12px}
 .foot-grid ul{list-style:none; padding:0; margin:0}
 .foot-grid li{margin-bottom:8px}
 .foot-grid a{color:var(--muted); font-size:14px}
-.foot-grid a:hover{color:var(--gold)}
+.foot-grid a:hover{color:var(--brass)}
 .foot-bottom{display:flex; gap:14px; flex-wrap:wrap; align-items:center;
   margin-top:34px; padding-top:22px; border-top:1px solid var(--border)}
 .foot-bottom .right{margin-left:auto}
@@ -312,5 +315,5 @@ input:hover,select:hover{border-color:var(--border-lit)}
   body{background:#fff; color:#111; background-image:none}
   .site-head,.site-foot,.btn,.chakra,.spark-field{display:none}
   .card,.scroll{border-color:#ccc; background:#fff}
-  a{color:#4c1d95}
+  a{color:#7c2d12}
 }

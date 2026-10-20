@@ -6,7 +6,7 @@ counters, and results print the moment they are found. The previous version
 replayed a fake radar sweep after the scan had already finished, which looked
 busy and told the operator nothing.
 
-Purple/black palette from core.theme, matching the web UI.
+Sanatan palette from core.theme, matching the web UI.
 """
 
 from __future__ import annotations
@@ -88,14 +88,14 @@ def _chakra_frame(tick: int, radius: int = 8) -> Text:
             else:
                 row.append(" ")
 
-        # Colour in bands so the wheel has depth: gold hub, violet body, purple rim.
+        # Colour in bands so the wheel has depth: brass hub, saffron body, ember rim.
         band = abs(grid_y)
         if band <= 1:
-            style = "cv.gold"
+            style = "cv.brass"
         elif band <= radius // 2:
-            style = "cv.violet"
+            style = "cv.saffron"
         else:
-            style = "cv.purple"
+            style = "cv.bhagwa"
         lines.append(("".join(row).rstrip(), style))
 
     text = Text()
@@ -132,10 +132,10 @@ class TerminalUI(ProgressSink):
             self.console.print("ChakraView 2.0 — Strategic Recon Formation")
             return
 
-        self.console.print(Text(BANNER, style="cv.violet"), justify="center")
+        self.console.print(Text(BANNER, style="cv.saffron"), justify="center")
         self.console.print(
             Text("☸  T H E   S T R A T E G I C   B A T T L E   F O R M A T I O N  ☸",
-                 style="cv.lilac"),
+                 style="cv.marigold"),
             justify="center",
         )
         self.console.print(
@@ -175,7 +175,7 @@ class TerminalUI(ProgressSink):
         if self.cfg.passive_only:
             table.add_row("Mode", Text("PASSIVE ONLY — no traffic to target", style="cv.warn"))
         if self.cfg.deep:
-            table.add_row("Mode", Text("DEEP — expanded limits", style="cv.lilac"))
+            table.add_row("Mode", Text("DEEP — expanded limits", style="cv.marigold"))
         self.console.print(
             Panel(table, title="[cv.chakra]TARGET FORTRESS[/]", border_style="cv.border",
                   padding=(1, 2))
@@ -187,10 +187,10 @@ class TerminalUI(ProgressSink):
         if self.quiet:
             return
         self._progress = Progress(
-            SpinnerColumn("dots", style="cv.lilac"),
+            SpinnerColumn("dots", style="cv.marigold"),
             TextColumn("[cv.muted]{task.description}"),
-            BarColumn(bar_width=28, style="cv.border", complete_style="cv.violet",
-                      finished_style="cv.purple"),
+            BarColumn(bar_width=28, style="cv.border", complete_style="cv.saffron",
+                      finished_style="cv.bhagwa"),
             TaskProgressColumn(),
             MofNCompleteColumn(),
             TimeElapsedColumn(),
@@ -266,7 +266,7 @@ class TerminalUI(ProgressSink):
         self._print(
             Text.assemble(
                 ("     ", ""),
-                ("› ", "cv.purple"),
+                ("› ", "cv.bhagwa"),
                 (shuddhi.sanitize(text, max_len=200), "cv.muted"),
             )
         )
@@ -334,7 +334,7 @@ class TerminalUI(ProgressSink):
             box=None, expand=True, padding=(0, 1), title_justify="left",
         )
         table.add_column("SEV", width=8, no_wrap=True)
-        table.add_column("CHAKRA", width=12, style="cv.purple", no_wrap=True)
+        table.add_column("CHAKRA", width=12, style="cv.bhagwa", no_wrap=True)
         table.add_column("FINDING", ratio=3, overflow="fold")
         table.add_column("ASSET", ratio=2, style="cv.muted", overflow="fold")
 
@@ -360,7 +360,7 @@ class TerminalUI(ProgressSink):
                                         style="cv.text"))
             if finding.evidence:
                 body.add_row("Evidence", Text(shuddhi.sanitize(finding.evidence, max_len=400),
-                                              style="cv.lilac"))
+                                              style="cv.marigold"))
             if finding.remediation:
                 body.add_row("Fix", Text(shuddhi.sanitize(finding.remediation, max_len=400),
                                          style="cv.ok"))
@@ -390,7 +390,7 @@ class TerminalUI(ProgressSink):
         table.add_column("CODE", width=5, no_wrap=True)
         table.add_column("HOST", ratio=2, overflow="fold")
         table.add_column("TITLE", ratio=2, style="cv.muted", overflow="ellipsis")
-        table.add_column("TECH", ratio=2, style="cv.lilac", overflow="fold")
+        table.add_column("TECH", ratio=2, style="cv.marigold", overflow="fold")
         table.add_column("PORTS", width=18, style="cv.faint", overflow="fold")
 
         for entry in alive[:80]:
@@ -426,7 +426,7 @@ class TerminalUI(ProgressSink):
             box=None, expand=True, padding=(0, 1), title_justify="left",
         )
         table.add_column("#", width=4, style="cv.faint", no_wrap=True)
-        table.add_column("GROUP", width=22, style="cv.purple", overflow="fold")
+        table.add_column("GROUP", width=22, style="cv.bhagwa", overflow="fold")
         table.add_column("QUERY", ratio=1, overflow="fold")
         for index, dork in enumerate(shown, 1):
             table.add_row(f"{index:02d}", dork["group"],
@@ -506,7 +506,7 @@ class TerminalUI(ProgressSink):
             self.console.print(
                 Text.assemble(
                     ("  ✓ ", "cv.ok"),
-                    (f"{fmt.upper():<5} ", "cv.purple"),
+                    (f"{fmt.upper():<5} ", "cv.bhagwa"),
                     (path, "cv.text"),
                 )
             )
@@ -517,7 +517,7 @@ class TerminalUI(ProgressSink):
         self.console.print()
         self.console.print(
             Text(f"  {T.SWORD}  The vyuha is mapped. Verify before you report.  {T.SWORD}",
-                 style="cv.gold"),
+                 style="cv.brass"),
             justify="center",
         )
         self.console.print()

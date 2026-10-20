@@ -362,12 +362,12 @@ _FAVICON = (
 
 _HTML_CSS = """
 :root{
-  --void:#09060f; --abyss:#0b0713; --surface:#130c1f; --border:#2a1b3d;
-  --purple-deep:#5b21b6; --purple:#7c3aed; --violet:#a855f7; --lilac:#c084fc;
-  --orb:#9333ea; --gold:#fbbf24; --saffron:#f59e0b;
-  --text:#ede9fe; --muted:#9f8fc0; --faint:#6b5b8a;
-  --sev-critical:#ff3366; --sev-high:#ff7a45; --sev-medium:#fbbf24;
-  --sev-low:#38bdf8; --sev-info:#8b7cb8; --ok:#34d399;
+  --void:#0c0705; --abyss:#130c07; --surface:#1d1309; --border:#3d2615;
+  --ember:#9a3412; --bhagwa:#e05c0c; --saffron:#ff7a18; --marigold:#fcb13f;
+  --diya:#ff8c1a; --brass:#f5c542; --haldi:#e8a317;
+  --text:#fdf4e3; --muted:#cdae86; --faint:#937154;
+  --sev-critical:#ff2e4e; --sev-high:#ff7a18; --sev-medium:#f5c542;
+  --sev-low:#2dd4bf; --sev-info:#c0a583; --ok:#93c943;
   --radius:14px; --maxw:1180px;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -377,20 +377,20 @@ body{
   font:15px/1.65 "Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   /* Dot grid over two fixed radial orbs — the ground the whole UI sits on. */
   background-image:
-    radial-gradient(circle at 18% 8%, rgba(147,51,234,.20), transparent 46%),
-    radial-gradient(circle at 86% 72%, rgba(124,58,237,.16), transparent 50%),
-    radial-gradient(rgba(168,85,247,.085) 1px, transparent 1px);
+    radial-gradient(circle at 18% 8%, rgba(255,140,26,.20), transparent 46%),
+    radial-gradient(circle at 86% 72%, rgba(224,92,12,.16), transparent 50%),
+    radial-gradient(rgba(255,122,24,.085) 1px, transparent 1px);
   background-size:auto,auto,22px 22px;
   background-attachment:fixed,fixed,fixed;
   overflow-x:hidden;            /* no horizontal scroll, ever */
 }
 .wrap{max-width:var(--maxw); margin:0 auto; padding:0 20px}
-a{color:var(--lilac); text-decoration:none; border-bottom:1px solid rgba(192,132,252,.3)}
-a:hover{color:var(--gold); border-bottom-color:var(--gold)}
-a:focus-visible,button:focus-visible{outline:2px solid var(--violet); outline-offset:3px; border-radius:4px}
+a{color:var(--marigold); text-decoration:none; border-bottom:1px solid rgba(252,177,63,.3)}
+a:hover{color:var(--brass); border-bottom-color:var(--brass)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--saffron); outline-offset:3px; border-radius:4px}
 
 /* ── Header ── */
-header{border-bottom:1px solid var(--border); background:rgba(11,7,19,.9);
+header{border-bottom:1px solid var(--border); background:rgba(19,12,7,.9);
   backdrop-filter:blur(10px); position:sticky; top:0; z-index:20}
 .bar{display:flex; align-items:center; gap:14px; padding:16px 0; flex-wrap:wrap}
 .logo{display:flex; align-items:center; gap:11px; border:0; flex-shrink:0}
@@ -398,7 +398,7 @@ header{border-bottom:1px solid var(--border); background:rgba(11,7,19,.9);
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.logo svg{animation:none}}
 .logo b{font-size:17px; letter-spacing:.16em; color:var(--text); font-weight:700}
-.logo span{color:var(--violet)}
+.logo span{color:var(--saffron)}
 .spacer{flex:1 1 auto}
 .chip{font-size:11.5px; letter-spacing:.1em; text-transform:uppercase;
   padding:5px 11px; border-radius:999px; border:1px solid var(--border);
@@ -406,12 +406,12 @@ header{border-bottom:1px solid var(--border); background:rgba(11,7,19,.9);
 
 /* ── Hero ── */
 .hero{padding:40px 0 26px}
-.eyebrow{font-size:11.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--violet)}
+.eyebrow{font-size:11.5px; letter-spacing:.3em; text-transform:uppercase; color:var(--saffron)}
 h1{margin:10px 0 6px; font-size:clamp(26px,5vw,42px); line-height:1.12; letter-spacing:-.02em;
   word-break:break-word}
-h1 .t{background:linear-gradient(100deg,var(--gold),var(--violet));
+h1 .t{background:linear-gradient(100deg,var(--brass),var(--saffron));
   -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
-  color:var(--gold)}
+  color:var(--brass)}
 .sub{color:var(--muted); margin:0}
 
 /* ── Stats ── */
@@ -420,53 +420,53 @@ h1 .t{background:linear-gradient(100deg,var(--gold),var(--violet));
 .stat{background:var(--abyss); border:1px solid var(--border);
   border-radius:var(--radius); padding:15px 17px; position:relative; overflow:hidden}
 .stat::after{content:""; position:absolute; inset:0 0 auto; height:2px;
-  background:linear-gradient(90deg,transparent,var(--violet),transparent); opacity:.6}
+  background:linear-gradient(90deg,transparent,var(--saffron),transparent); opacity:.6}
 .stat .k{font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint)}
 .stat .v{font-size:26px; font-weight:700; margin-top:5px; line-height:1.1}
 .meter{height:7px; border-radius:99px; background:var(--surface);
   overflow:hidden; margin-top:10px}
 .meter i{display:block; height:100%; border-radius:99px;
-  background:linear-gradient(90deg,var(--purple),var(--violet),var(--gold))}
+  background:linear-gradient(90deg,var(--bhagwa),var(--saffron),var(--brass))}
 
 /* ── Sections ── */
 section{margin:40px 0}
 h2{font-size:20px; margin:0 0 4px; display:flex; align-items:center; gap:10px;
   flex-wrap:wrap}
-h2 .num{font-size:11px; letter-spacing:.2em; color:var(--violet);
+h2 .num{font-size:11px; letter-spacing:.2em; color:var(--saffron);
   border:1px solid var(--border); border-radius:999px; padding:3px 9px}
-h2 .sp{color:var(--lilac)}
+h2 .sp{color:var(--marigold)}
 .lede{color:var(--muted); margin:0 0 16px; font-size:14px}
 
 /* ── Tables: scroll inside their own box, never the page ── */
 .scroll{overflow-x:auto; border:1px solid var(--border); border-radius:var(--radius);
   background:var(--abyss); -webkit-overflow-scrolling:touch}
 table{border-collapse:collapse; width:100%; min-width:620px; font-size:13.5px}
-th,td{text-align:left; padding:10px 13px; border-bottom:1px solid rgba(42,27,61,.65);
+th,td{text-align:left; padding:10px 13px; border-bottom:1px solid rgba(61,38,21,.65);
   vertical-align:top}
 th{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);
   background:var(--surface); position:sticky; top:0; z-index:1; white-space:nowrap}
 tr:last-child td{border-bottom:0}
-tbody tr:hover{background:rgba(124,58,237,.07)}
+tbody tr:hover{background:rgba(224,92,12,.07)}
 code,.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:12.5px}
-td code{color:var(--lilac); word-break:break-all}
+td code{color:var(--marigold); word-break:break-all}
 
 /* ── Severity badges ── */
 .sev{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.1em;
   padding:3px 8px; border-radius:5px; white-space:nowrap; text-transform:uppercase}
-.sev.critical{background:rgba(255,51,102,.16); color:var(--sev-critical);
-  border:1px solid rgba(255,51,102,.4)}
-.sev.high{background:rgba(255,122,69,.16); color:var(--sev-high);
-  border:1px solid rgba(255,122,69,.4)}
-.sev.medium{background:rgba(251,191,36,.14); color:var(--sev-medium);
-  border:1px solid rgba(251,191,36,.38)}
-.sev.low{background:rgba(56,189,248,.14); color:var(--sev-low);
-  border:1px solid rgba(56,189,248,.36)}
-.sev.info{background:rgba(139,124,184,.14); color:var(--sev-info);
-  border:1px solid rgba(139,124,184,.34)}
+.sev.critical{background:rgba(255,46,78,.16); color:var(--sev-critical);
+  border:1px solid rgba(255,46,78,.4)}
+.sev.high{background:rgba(255,122,24,.16); color:var(--sev-high);
+  border:1px solid rgba(255,122,24,.4)}
+.sev.medium{background:rgba(245,197,66,.14); color:var(--sev-medium);
+  border:1px solid rgba(245,197,66,.38)}
+.sev.low{background:rgba(45,212,191,.14); color:var(--sev-low);
+  border:1px solid rgba(45,212,191,.36)}
+.sev.info{background:rgba(192,165,131,.14); color:var(--sev-info);
+  border:1px solid rgba(192,165,131,.34)}
 
 /* ── Finding cards ── */
 .find{background:var(--abyss); border:1px solid var(--border);
-  border-left:3px solid var(--violet); border-radius:var(--radius);
+  border-left:3px solid var(--saffron); border-radius:var(--radius);
   padding:17px 19px; margin-bottom:13px}
 .find.critical{border-left-color:var(--sev-critical)}
 .find.high{border-left-color:var(--sev-high)}
@@ -478,7 +478,7 @@ td code{color:var(--lilac); word-break:break-all}
 .find dt{color:var(--faint); font-size:11px; letter-spacing:.11em; text-transform:uppercase;
   padding-top:2px}
 .find dd{margin:0; min-width:0; overflow-wrap:anywhere}
-.find dd.ev{color:var(--lilac); font-family:ui-monospace,Menlo,monospace; font-size:12.5px}
+.find dd.ev{color:var(--marigold); font-family:ui-monospace,Menlo,monospace; font-size:12.5px}
 .find dd.fix{color:var(--ok)}
 @media (max-width:620px){.find dl{grid-template-columns:1fr; gap:2px 0}
   .find dt{margin-top:9px}}
@@ -488,9 +488,9 @@ td code{color:var(--lilac); word-break:break-all}
 .filters button{font:inherit; font-size:12px; letter-spacing:.06em; cursor:pointer;
   background:var(--surface); color:var(--muted); border:1px solid var(--border);
   border-radius:999px; padding:6px 14px}
-.filters button[aria-pressed="true"]{background:var(--purple); color:#fff;
-  border-color:var(--violet)}
-.filters button:hover{color:var(--text); border-color:var(--violet)}
+.filters button[aria-pressed="true"]{background:var(--bhagwa); color:#fff;
+  border-color:var(--saffron)}
+.filters button:hover{color:var(--text); border-color:var(--saffron)}
 
 /* ── Pills & lists ── */
 .pills{display:flex; flex-wrap:wrap; gap:7px; padding:0; margin:0; list-style:none}
@@ -499,15 +499,15 @@ td code{color:var(--lilac); word-break:break-all}
 .cols{columns:2 300px; column-gap:26px}
 .cols li{break-inside:avoid}
 ul.plain{list-style:none; padding:0; margin:0}
-ul.plain li{padding:5px 0; border-bottom:1px solid rgba(42,27,61,.5); font-size:13px;
+ul.plain li{padding:5px 0; border-bottom:1px solid rgba(61,38,21,.5); font-size:13px;
   overflow-wrap:anywhere}
 .group h4{margin:20px 0 8px; font-size:13px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--violet)}
+  color:var(--saffron)}
 .empty{color:var(--faint); font-style:italic}
 
 /* ── Note / footer ── */
-.note{border:1px solid var(--border); border-left:3px solid var(--gold);
-  background:rgba(251,191,36,.055); border-radius:var(--radius);
+.note{border:1px solid var(--border); border-left:3px solid var(--brass);
+  background:rgba(245,197,66,.055); border-radius:var(--radius);
   padding:14px 17px; color:var(--muted); font-size:13.5px; margin:22px 0}
 footer{border-top:1px solid var(--border); margin-top:54px; padding:26px 0 36px;
   color:var(--faint); font-size:13px}
@@ -517,16 +517,16 @@ footer .fl{display:flex; gap:16px; flex-wrap:wrap; align-items:center}
   header{position:static}
   .filters,.logo svg{display:none}
   .find,.scroll,.stat{border-color:#ccc; background:#fff}
-  a{color:#4c1d95}
+  a{color:#7c2d12}
 }
 """
 
 _LOGO_SVG = (
     '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">'
-    '<circle cx="16" cy="16" r="14" fill="none" stroke="#a855f7" stroke-width="1.6"/>'
-    '<circle cx="16" cy="16" r="7.5" fill="none" stroke="#c084fc" stroke-width="1.2"/>'
-    '<circle cx="16" cy="16" r="2.4" fill="#fbbf24"/>'
-    '<g stroke="#a855f7" stroke-width="1.2">'
+    '<circle cx="16" cy="16" r="14" fill="none" stroke="#ff7a18" stroke-width="1.6"/>'
+    '<circle cx="16" cy="16" r="7.5" fill="none" stroke="#fcb13f" stroke-width="1.2"/>'
+    '<circle cx="16" cy="16" r="2.4" fill="#f5c542"/>'
+    '<g stroke="#ff7a18" stroke-width="1.2">'
     '<path d="M16 2v6M16 24v6M2 16h6M24 16h6"/>'
     '<path d="M6.1 6.1l4.3 4.3M21.6 21.6l4.3 4.3M25.9 6.1l-4.3 4.3M10.4 21.6l-4.3 4.3"/>'
     "</g></svg>"
@@ -699,7 +699,7 @@ def _write_html(result: ScanResult, path: str) -> None:
         add("</tbody></table></div>")
         technologies = infra.get("technologies") or {}
         if technologies:
-            add('<h4 style="color:var(--violet);margin:22px 0 8px;font-size:13px;'
+            add('<h4 style="color:var(--saffron);margin:22px 0 8px;font-size:13px;'
                 'letter-spacing:.1em;text-transform:uppercase">Technologies identified</h4>')
             add('<ul class="pills">')
             for name, count in technologies.items():
@@ -741,7 +741,7 @@ def _write_html(result: ScanResult, path: str) -> None:
 
         tenants = (result.dns or {}).get("saas_tenants") or []
         if tenants:
-            add('<h4 style="color:var(--violet);margin:22px 0 8px;font-size:13px;'
+            add('<h4 style="color:var(--saffron);margin:22px 0 8px;font-size:13px;'
                 'letter-spacing:.1em;text-transform:uppercase">'
                 "Third-party tenants verified via DNS</h4>")
             add('<ul class="pills">'
@@ -856,7 +856,7 @@ def _write_html(result: ScanResult, path: str) -> None:
             add("</tbody></table></div>")
         parameters = archive.get("interesting_parameters") or {}
         if parameters:
-            add('<h4 style="color:var(--violet);margin:24px 0 8px;font-size:13px;'
+            add('<h4 style="color:var(--saffron);margin:24px 0 8px;font-size:13px;'
                 'letter-spacing:.1em;text-transform:uppercase">'
                 "Parameters mapping to known vulnerability classes</h4>")
             add('<div class="scroll"><table><thead><tr><th>Parameter</th>'
@@ -919,7 +919,7 @@ def _write_html(result: ScanResult, path: str) -> None:
     add(f"<tr><td>duration</td><td><code>{result.duration:.1f}s</code></td></tr>")
     add("</tbody></table></div>")
     if result.skipped:
-        add('<h4 style="color:var(--violet);margin:22px 0 8px;font-size:13px;'
+        add('<h4 style="color:var(--saffron);margin:22px 0 8px;font-size:13px;'
             'letter-spacing:.1em;text-transform:uppercase">Skipped</h4>')
         add('<ul class="pills">'
             + "".join(f"<li>{_h(s, 120)}</li>" for s in result.skipped) + "</ul>")

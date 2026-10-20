@@ -6,7 +6,7 @@
 <title>Scan Dashboard — ChakraView</title>
 <meta name="description" content="Run a ChakraView reconnaissance scan from the browser and watch all ten chakras execute live: subdomain enumeration, HTTP probing, takeover detection, port scanning and JavaScript secret mining, with findings streamed as they are found.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#09060f">
+<meta name="theme-color" content="#0c0705">
 <meta name="color-scheme" content="dark">
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 <link rel="stylesheet" href="assets/css/chakraview.css">
@@ -15,27 +15,36 @@
     align-items:start; padding:30px 0 10px}
   @media (max-width:1000px){.dash{grid-template-columns:1fr}}
 
-  .panel{background:linear-gradient(180deg,rgba(26,16,40,.72),rgba(11,7,19,.76));
+  .panel{background:linear-gradient(180deg,rgba(42,26,14,.72),rgba(19,12,7,.76));
     border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px}
   .panel h2{font-size:14px; letter-spacing:.14em; text-transform:uppercase;
-    color:var(--violet); margin:0 0 18px; display:flex; align-items:center; gap:9px}
+    color:var(--saffron); margin:0 0 18px; display:flex; align-items:center; gap:9px}
   .panel-sticky{position:sticky; top:84px}
   @media (max-width:1000px){.panel-sticky{position:static}}
 
   .field{margin-bottom:17px}
-  .field-row{display:grid; gap:12px; grid-template-columns:1fr 1fr}
+  .field-row{display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr))}
 
   fieldset{border:1px solid var(--border); border-radius:var(--radius);
     padding:14px 15px 15px; margin:0 0 17px}
   legend{font-size:11px; letter-spacing:.14em; text-transform:uppercase;
     color:var(--faint); padding:0 7px}
-  .chakra-picks{display:grid; gap:9px 12px; grid-template-columns:1fr 1fr}
+  /* minmax(0,…), not 1fr: 1fr floors each column at min-content, and the
+     longer chakra names then push this grid wider than the panel. */
+  .chakra-picks{display:grid; gap:9px 12px;
+    grid-template-columns:repeat(2,minmax(0,1fr))}
+  .chakra-picks .check{min-width:0; align-items:flex-start; flex-wrap:wrap}
+  /* The key is what --only and --skip take, so it is never abbreviated —
+     it wraps onto its own line under the name instead. */
+  .chakra-picks .check .k{flex:0 0 100%; margin-left:25px; margin-top:1px;
+    font-style:normal; font-size:10.5px; letter-spacing:.09em;
+    text-transform:uppercase; color:var(--faint)}
   .chakra-picks .check{font-size:13px}
   .pick-actions{display:flex; gap:8px; margin-top:13px; flex-wrap:wrap}
   .pick-actions button{font:inherit; font-size:11.5px; letter-spacing:.08em;
     text-transform:uppercase; cursor:pointer; background:none; color:var(--muted);
     border:1px solid var(--border); border-radius:7px; padding:5px 10px}
-  .pick-actions button:hover{color:var(--lilac); border-color:var(--violet)}
+  .pick-actions button:hover{color:var(--marigold); border-color:var(--saffron)}
 
   .run-actions{display:flex; gap:10px}
   .run-actions .btn{flex:1}
@@ -43,12 +52,12 @@
   /* ── Chakra run list ── */
   .runlist{list-style:none; padding:0; margin:0}
   .runrow{display:grid; gap:4px 13px; grid-template-columns:30px 1fr auto;
-    padding:11px 0; border-bottom:1px solid rgba(42,27,61,.55); align-items:center}
+    padding:11px 0; border-bottom:1px solid rgba(61,38,21,.55); align-items:center}
   .runrow:last-child{border-bottom:0}
   .runrow .dot{width:11px; height:11px; border-radius:50%; background:var(--border-lit);
     justify-self:center; transition:background .3s var(--ease), box-shadow .3s var(--ease)}
-  .runrow[data-state="running"] .dot{background:var(--violet);
-    box-shadow:0 0 0 4px rgba(168,85,247,.2); animation:cv-pulse 1.5s ease-in-out infinite}
+  .runrow[data-state="running"] .dot{background:var(--saffron);
+    box-shadow:0 0 0 4px rgba(255,122,24,.2); animation:cv-pulse 1.5s ease-in-out infinite}
   .runrow[data-state="done"]    .dot{background:var(--ok)}
   .runrow[data-state="skipped"] .dot{background:var(--faint)}
   .runrow[data-state="failed"]  .dot{background:var(--fail)}
@@ -67,13 +76,13 @@
   .feed{height:252px; overflow-y:auto; overflow-x:hidden; margin:0; padding:0;
     list-style:none; border:1px solid var(--border); border-radius:var(--radius);
     background:var(--void); font-family:var(--mono); font-size:12.5px}
-  .feed li{padding:6px 13px; border-bottom:1px solid rgba(42,27,61,.4);
+  .feed li{padding:6px 13px; border-bottom:1px solid rgba(61,38,21,.4);
     display:flex; gap:9px; overflow-wrap:anywhere}
   .feed li:last-child{border-bottom:0}
-  .feed .src{color:var(--purple); flex-shrink:0; width:92px}
+  .feed .src{color:var(--bhagwa); flex-shrink:0; width:92px}
   .feed .msg{color:var(--text); min-width:0}
   .feed li.note .msg{color:var(--muted)}
-  .feed li.find .msg{color:var(--gold)}
+  .feed li.find .msg{color:var(--brass)}
   .feed .empty{color:var(--faint); justify-content:center; padding:22px}
 
   /* ── Stats ── */
@@ -98,12 +107,12 @@
   .filters button{font:inherit; font-size:12px; cursor:pointer; background:var(--surface);
     color:var(--muted); border:1px solid var(--border); border-radius:999px;
     padding:6px 14px}
-  .filters button[aria-pressed="true"]{background:var(--purple); color:#fff;
-    border-color:var(--violet)}
-  .filters button:hover{color:var(--text); border-color:var(--violet)}
+  .filters button[aria-pressed="true"]{background:var(--bhagwa); color:#fff;
+    border-color:var(--saffron)}
+  .filters button:hover{color:var(--text); border-color:var(--saffron)}
 
   .find{background:var(--abyss); border:1px solid var(--border);
-    border-left:3px solid var(--violet); border-radius:var(--radius);
+    border-left:3px solid var(--saffron); border-radius:var(--radius);
     padding:15px 17px; margin-bottom:11px}
   .find.critical{border-left-color:var(--sev-critical)}
   .find.high{border-left-color:var(--sev-high)}
@@ -116,7 +125,7 @@
   .find dt{color:var(--faint); font-size:10.5px; letter-spacing:.11em;
     text-transform:uppercase; padding-top:2px}
   .find dd{margin:0; min-width:0; overflow-wrap:anywhere}
-  .find dd.ev{color:var(--lilac); font-family:var(--mono); font-size:12.5px}
+  .find dd.ev{color:var(--marigold); font-family:var(--mono); font-size:12.5px}
   .find dd.fix{color:var(--ok)}
   @media (max-width:620px){.find dl{grid-template-columns:1fr; gap:1px}
     .find dt{margin-top:9px}}
@@ -126,7 +135,7 @@
   .tabs button{font:inherit; font-size:13.5px; cursor:pointer; background:none;
     color:var(--muted); border:0; border-bottom:2px solid transparent;
     padding:10px 15px; white-space:nowrap}
-  .tabs button[aria-selected="true"]{color:var(--lilac); border-bottom-color:var(--violet)}
+  .tabs button[aria-selected="true"]{color:var(--marigold); border-bottom-color:var(--saffron)}
   .tabs button:hover{color:var(--text)}
 
   .dl{display:flex; gap:9px; flex-wrap:wrap; margin-top:16px}

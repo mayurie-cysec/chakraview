@@ -65,7 +65,7 @@
         chakra.name.charAt(0) + chakra.name.slice(1).toLowerCase()
       ));
       var tag = document.createElement("em");
-      tag.style.cssText = "color:var(--faint);font-size:11px;margin-left:5px";
+      tag.className = "k";
       tag.textContent = chakra.key;
       label.appendChild(tag);
       label.title = chakra.sub;
@@ -538,7 +538,7 @@
       if (!items || !items.length) return;
       var head = document.createElement("h3");
       head.style.cssText = "font-size:12px;letter-spacing:.12em;" +
-        "text-transform:uppercase;color:" + (style || "var(--violet)") +
+        "text-transform:uppercase;color:" + (style || "var(--saffron)") +
         ";margin:18px 0 9px";
       head.textContent = title;
       host.appendChild(head);
