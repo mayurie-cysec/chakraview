@@ -2,16 +2,35 @@
    The Sudarshana Chakra — ChakraView's mark, drawn as SVG and animated in CSS.
 
    Built in JavaScript rather than hand-written markup because the geometry is
-   repetitive: five concentric rings of blades, teeth, spokes and sparks, each
-   needing exact polar placement. Generating it keeps the shapes true and lets
-   one function serve the 34px header mark and the 420px hero wheel.
+   deeply repetitive: ten concentric rings of flames, teeth, beads, blades,
+   lotus petals, yantra triangles and spokes, each needing exact polar
+   placement. Generating it keeps every ring true and lets one function serve
+   the 36px header mark and the 420px hero wheel.
 
-   Rotation lives in CSS (see .chakra [data-spin] in chakraview.css) so the
-   browser composites it on the GPU and prefers-reduced-motion can stop it.
+   The ten layers, outermost first:
+
+     1  jwala    24 flames licking outward past the rim
+     2  rim      double rim with 72 teeth and 12 heavier studs
+     3  mani     24-bead ring
+     4  mantra   120 fine inscription ticks
+     5  shatkona two interlocking triangles, counter-rotating, behind the blades
+     6  blades   12 flame-shaped discus blades — the signature layer
+     7  padma    16-petal lotus seat
+     8  antara   12-bead inner ring
+     9  spokes   16-spoke inner wheel + hub rings
+    10  sparks   8 orbiting glyphs
+
+   Each layer turns at its own speed and direction, so the wheel reads as one
+   object with real depth rather than a single flat image spinning. Rotation
+   lives in CSS (.chakra [data-spin] in chakraview.css) so the browser
+   composites it on the GPU and prefers-reduced-motion can stop all of it.
 
    Usage:
      <div data-chakra data-size="420" data-detail="full"></div>
      <script src="assets/js/chakra.js"></script>
+
+   detail: "full" every layer · "mid" the structural ones · "mark" a legible
+   silhouette for small sizes.
    ========================================================================== */
 
 (function () {
@@ -19,6 +38,18 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var TAU = Math.PI * 2;
+
+  // Palette — mirrors the Sanatan tokens in chakraview.css.
+  var C = {
+    ember:    "#9a3412",
+    bhagwa:   "#e05c0c",
+    saffron:  "#ff7a18",
+    marigold: "#fcb13f",
+    brass:    "#f5c542",
+    amber:    "#b45309",
+    white:    "#fffbeb",
+    void:     "#0c0705"
+  };
 
   function el(name, attrs) {
     var node = document.createElementNS(SVG_NS, name);
@@ -31,36 +62,316 @@
   }
 
   /* Polar to cartesian, centred on the 200,200 origin of the viewBox. */
-  function point(radius, angle) {
-    return [200 + Math.cos(angle) * radius, 200 + Math.sin(angle) * radius];
+  function pt(radius, angle) {
+    return [
+      (200 + Math.cos(angle) * radius).toFixed(1),
+      (200 + Math.sin(angle) * radius).toFixed(1)
+    ];
   }
 
-  /* One blade of the discus: a tapered flame that sweeps from the inner ring
-     out past the rim, which is what makes the wheel read as a weapon rather
-     than a gear. */
-  function bladePath(index, count, inner, outer, spread) {
-    var angle = (index / count) * TAU;
-    var half = (TAU / count) * spread;
-    var base1 = point(inner, angle - half);
-    var base2 = point(inner, angle + half);
-    var tip = point(outer, angle + half * 0.35);
-    var curve = point((inner + outer) / 2, angle - half * 1.25);
-    return (
-      "M" + base1[0].toFixed(1) + "," + base1[1].toFixed(1) +
-      " Q" + curve[0].toFixed(1) + "," + curve[1].toFixed(1) +
-      " " + tip[0].toFixed(1) + "," + tip[1].toFixed(1) +
-      " L" + base2[0].toFixed(1) + "," + base2[1].toFixed(1) + " Z"
-    );
-  }
-
-  function group(spin) {
-    var g = el("g", {});
+  function group(spin, extra) {
+    var g = el("g", extra || {});
     if (spin) g.setAttribute("data-spin", spin);
     return g;
   }
 
+  /* ── Shape builders ─────────────────────────────────────────────────── */
+
+  /* A discus blade: a tapered flame sweeping from the inner seat out past
+     the lotus, asymmetric so the wheel has an obvious direction of travel. */
+  function bladePath(i, count, inner, outer, spread) {
+    var a = (i / count) * TAU;
+    var half = (TAU / count) * spread;
+    var b1 = pt(inner, a - half);
+    var b2 = pt(inner, a + half);
+    var tip = pt(outer, a + half * 0.62);
+    var lead = pt((inner + outer) * 0.54, a - half * 1.45);
+    // The trailing control sits close to the tip, so the point stays sharp
+    // instead of rounding off into a petal.
+    var trail = pt(outer * 0.86, a + half * 0.78);
+    return "M" + b1 + " Q" + lead + " " + tip +
+           " Q" + trail + " " + b2 + " Z";
+  }
+
+  /* A corona flame: narrow, slightly swept, licking outward. */
+  function flamePath(i, count, inner, outer) {
+    var a = (i / count) * TAU;
+    var half = (TAU / count) * 0.30;
+    var b1 = pt(inner, a - half);
+    var b2 = pt(inner, a + half);
+    var tip = pt(outer, a + half * 0.9);
+    var mid = pt((inner + outer) / 2, a - half * 0.5);
+    return "M" + b1 + " Q" + mid + " " + tip + " L" + b2 + " Z";
+  }
+
+  /* A lotus petal: a pointed oval seated under the blades. */
+  function petalPath(i, count, inner, outer) {
+    var a = (i / count) * TAU;
+    var half = (TAU / count) * 0.5;
+    var b1 = pt(inner, a - half);
+    var b2 = pt(inner, a + half);
+    var tip = pt(outer, a);
+    var c1 = pt((inner + outer) * 0.62, a - half * 1.15);
+    var c2 = pt((inner + outer) * 0.62, a + half * 1.15);
+    return "M" + b1 + " Q" + c1 + " " + tip + " Q" + c2 + " " + b2 + " Z";
+  }
+
+  function trianglePath(radius, rotation) {
+    var points = [];
+    for (var i = 0; i < 3; i++) {
+      points.push(pt(radius, rotation + (i / 3) * TAU).join(","));
+    }
+    return "M" + points.join(" L") + " Z";
+  }
+
+  /* ── Gradients ──────────────────────────────────────────────────────── */
+
+  function defs(uid) {
+    var d = el("defs", {});
+
+    var halo = el("radialGradient", { id: uid + "halo" });
+    halo.appendChild(el("stop", { offset: "0%",  "stop-color": C.saffron, "stop-opacity": ".55" }));
+    halo.appendChild(el("stop", { offset: "45%", "stop-color": C.bhagwa,  "stop-opacity": ".30" }));
+    halo.appendChild(el("stop", { offset: "100%","stop-color": C.void,    "stop-opacity": "0" }));
+    d.appendChild(halo);
+
+    var rim = el("linearGradient", { id: uid + "rim", x1: "0", y1: "0", x2: "1", y2: "1" });
+    rim.appendChild(el("stop", { offset: "0%",   "stop-color": C.brass }));
+    rim.appendChild(el("stop", { offset: "48%",  "stop-color": C.saffron }));
+    rim.appendChild(el("stop", { offset: "100%", "stop-color": C.ember }));
+    d.appendChild(rim);
+
+    var blade = el("linearGradient", { id: uid + "blade", x1: "0", y1: "0", x2: "0.2", y2: "1" });
+    blade.appendChild(el("stop", { offset: "0%",   "stop-color": C.brass,    "stop-opacity": ".98" }));
+    blade.appendChild(el("stop", { offset: "42%",  "stop-color": C.marigold, "stop-opacity": ".92" }));
+    blade.appendChild(el("stop", { offset: "100%", "stop-color": C.bhagwa,   "stop-opacity": ".40" }));
+    d.appendChild(blade);
+
+    var flame = el("linearGradient", { id: uid + "flame", x1: "0", y1: "1", x2: "0", y2: "0" });
+    flame.appendChild(el("stop", { offset: "0%",   "stop-color": C.saffron, "stop-opacity": ".75" }));
+    flame.appendChild(el("stop", { offset: "100%", "stop-color": C.brass,   "stop-opacity": "0" }));
+    d.appendChild(flame);
+
+    var petal = el("linearGradient", { id: uid + "petal", x1: "0", y1: "0", x2: "0", y2: "1" });
+    petal.appendChild(el("stop", { offset: "0%",   "stop-color": C.marigold, "stop-opacity": ".55" }));
+    petal.appendChild(el("stop", { offset: "100%", "stop-color": C.ember,    "stop-opacity": ".22" }));
+    d.appendChild(petal);
+
+    var hub = el("radialGradient", { id: uid + "hub" });
+    hub.appendChild(el("stop", { offset: "0%",   "stop-color": C.white }));
+    hub.appendChild(el("stop", { offset: "38%",  "stop-color": C.brass }));
+    hub.appendChild(el("stop", { offset: "100%", "stop-color": C.amber }));
+    d.appendChild(hub);
+
+    return d;
+  }
+
+  /* ── Layers ─────────────────────────────────────────────────────────── */
+
+  function jwala(uid) {                       // 1 — corona flames
+    var g = group("jwala");
+    for (var i = 0; i < 24; i++) {
+      g.appendChild(el("path", {
+        d: flamePath(i, 24, 172, i % 2 ? 190 : 198),
+        fill: "url(#" + uid + "flame)"
+      }));
+    }
+    return g;
+  }
+
+  function rim(uid, full) {                   // 2 — toothed double rim
+    var g = group("rim");
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: 170, fill: "none",
+      stroke: "url(#" + uid + "rim)", "stroke-width": full ? 2.6 : 9
+    }));
+    if (!full) return g;
+
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: 161, fill: "none",
+      stroke: C.ember, "stroke-width": 1.1, "stroke-opacity": ".8"
+    }));
+    for (var t = 0; t < 72; t++) {
+      var a = (t / 72) * TAU;
+      var major = t % 6 === 0;
+      var p1 = pt(161, a);
+      var p2 = pt(major ? 178 : 170, a);
+      g.appendChild(el("line", {
+        x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1],
+        stroke: major ? C.brass : C.saffron,
+        "stroke-width": major ? 2.2 : 0.9,
+        "stroke-opacity": major ? ".95" : ".45"
+      }));
+    }
+    for (var s = 0; s < 12; s++) {            // heavier studs
+      var ps = pt(166, (s / 12) * TAU + TAU / 24);
+      g.appendChild(el("circle", {
+        cx: ps[0], cy: ps[1], r: 2.6, fill: C.brass, "fill-opacity": ".9"
+      }));
+    }
+    return g;
+  }
+
+  function mani() {                           // 3 — bead ring
+    var g = group("mani");
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: 152, fill: "none",
+      stroke: C.ember, "stroke-width": 0.9, "stroke-opacity": ".65"
+    }));
+    for (var i = 0; i < 24; i++) {
+      var p = pt(152, (i / 24) * TAU);
+      g.appendChild(el("circle", {
+        cx: p[0], cy: p[1], r: i % 2 ? 1.8 : 3.4,
+        fill: i % 2 ? C.marigold : C.brass,
+        "fill-opacity": i % 2 ? ".7" : ".95"
+      }));
+    }
+    return g;
+  }
+
+  function mantra() {                         // 4 — inscription ticks
+    var g = group("mantra");
+    for (var i = 0; i < 120; i++) {
+      var a = (i / 120) * TAU;
+      var p1 = pt(140, a);
+      var p2 = pt(i % 5 === 0 ? 148 : 145, a);
+      g.appendChild(el("line", {
+        x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1],
+        stroke: i % 5 === 0 ? C.marigold : C.bhagwa,
+        "stroke-width": i % 5 === 0 ? 1.3 : 0.7,
+        "stroke-opacity": i % 5 === 0 ? ".8" : ".4"
+      }));
+    }
+    return g;
+  }
+
+  function blades(uid, count, full) {         // 5 — the discus blades
+    var g = group("blades");
+    for (var i = 0; i < count; i++) {
+      g.appendChild(el("path", {
+        d: bladePath(i, count, 84, 137, 0.34),
+        fill: "url(#" + uid + "blade)",
+        stroke: C.saffron,
+        "stroke-width": full ? 0.9 : 1.8,
+        "stroke-opacity": ".6",
+        "stroke-linejoin": "round"
+      }));
+    }
+    return g;
+  }
+
+  function padma(uid) {                       // 6 — lotus seat
+    var g = group("padma");
+    for (var i = 0; i < 16; i++) {
+      g.appendChild(el("path", {
+        d: petalPath(i, 16, 54, 82),
+        fill: "url(#" + uid + "petal)",
+        stroke: C.marigold,
+        "stroke-width": 0.8,
+        "stroke-opacity": ".55"
+      }));
+    }
+    return g;
+  }
+
+  function shatkona() {                       // 5a — yantra underlay
+    var g = group("yantra");
+    g.appendChild(el("path", {
+      d: trianglePath(118, -Math.PI / 2), fill: "none",
+      stroke: C.brass, "stroke-width": 1.2, "stroke-opacity": ".38",
+      "stroke-linejoin": "round"
+    }));
+    var down = group("yantra-rev");
+    down.appendChild(el("path", {
+      d: trianglePath(118, Math.PI / 2), fill: "none",
+      stroke: C.saffron, "stroke-width": 1.2, "stroke-opacity": ".34",
+      "stroke-linejoin": "round"
+    }));
+    g.appendChild(down);
+    return g;
+  }
+
+  function antara() {                         // 8a — inner bead ring
+    var g = group("antara");
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: 47, fill: "none",
+      stroke: C.ember, "stroke-width": 0.9, "stroke-opacity": ".7"
+    }));
+    for (var i = 0; i < 12; i++) {
+      var p = pt(47, (i / 12) * TAU);
+      g.appendChild(el("circle", {
+        cx: p[0], cy: p[1], r: 1.9, fill: C.brass, "fill-opacity": ".85"
+      }));
+    }
+    return g;
+  }
+
+  function spokes(uid, count, full) {         // 8 — inner wheel
+    var g = group("inner");
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: 38, fill: "none",
+      stroke: C.marigold, "stroke-width": full ? 1.2 : 4, "stroke-opacity": ".8"
+    }));
+    for (var i = 0; i < count; i++) {
+      var a = (i / count) * TAU;
+      var p1 = pt(20, a);
+      var p2 = pt(38, a);
+      g.appendChild(el("line", {
+        x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1],
+        stroke: i % 2 ? C.saffron : C.brass,
+        "stroke-width": full ? 1.6 : 3,
+        "stroke-opacity": ".85"
+      }));
+    }
+    return g;
+  }
+
+  function bindu(uid, full) {                 // 9 — the hub
+    var g = group(null);
+    g.setAttribute("data-pulse", "");
+    g.appendChild(el("circle", {
+      cx: 200, cy: 200, r: full ? 19 : 24, fill: "url(#" + uid + "hub)"
+    }));
+    if (full) {
+      g.appendChild(el("circle", {
+        cx: 200, cy: 200, r: 12.5, fill: "none",
+        stroke: C.amber, "stroke-width": 1.3, "stroke-opacity": ".8"
+      }));
+      g.appendChild(el("circle", {
+        cx: 200, cy: 200, r: 5, fill: C.white, "fill-opacity": ".95"
+      }));
+    }
+    return g;
+  }
+
+  function sparks() {                         // 10 — orbiting glyphs
+    var g = group("sparks");
+    for (var i = 0; i < 8; i++) {
+      var p = pt(192, (i / 8) * TAU + 0.2);
+      var s = el("text", {
+        x: p[0], y: p[1],
+        "text-anchor": "middle", "dominant-baseline": "central",
+        fill: i % 2 ? C.marigold : C.brass,
+        "font-size": i % 2 ? 11 : 15
+      });
+      s.setAttribute("data-flicker", "");
+      s.style.animationDelay = (i * 0.32).toFixed(2) + "s";
+      s.textContent = "✦";
+      g.appendChild(s);
+    }
+    return g;
+  }
+
+  /* ── Assembly ───────────────────────────────────────────────────────── */
+
+  var seq = 0;
+
   function build(size, detail) {
-    var full = detail !== "mark";
+    // Gradient ids must be unique per instance — several wheels share a page.
+    var uid = "cv" + (seq++) + "-";
+    var full = detail === "full";
+    var mark = detail === "mark";
+
     var svg = el("svg", {
       class: "chakra",
       viewBox: "0 0 400 400",
@@ -69,154 +380,27 @@
       role: "img",
       "aria-label": "The Sudarshana Chakra, turning"
     });
+    svg.appendChild(defs(uid));
 
-    /* ── Gradients and the glow behind the wheel ── */
-    var defs = el("defs", {});
-
-    var glow = el("radialGradient", { id: "cvGlow" });
-    glow.appendChild(el("stop", { offset: "0%", "stop-color": "#fcb13f", "stop-opacity": ".85" }));
-    glow.appendChild(el("stop", { offset: "55%", "stop-color": "#e05c0c", "stop-opacity": ".35" }));
-    glow.appendChild(el("stop", { offset: "100%", "stop-color": "#0c0705", "stop-opacity": "0" }));
-    defs.appendChild(glow);
-
-    var rim = el("linearGradient", { id: "cvRim", x1: "0", y1: "0", x2: "1", y2: "1" });
-    rim.appendChild(el("stop", { offset: "0%", "stop-color": "#f5c542" }));
-    rim.appendChild(el("stop", { offset: "50%", "stop-color": "#ff7a18" }));
-    rim.appendChild(el("stop", { offset: "100%", "stop-color": "#9a3412" }));
-    defs.appendChild(rim);
-
-    var blade = el("linearGradient", { id: "cvBlade", x1: "0", y1: "0", x2: "0", y2: "1" });
-    blade.appendChild(el("stop", { offset: "0%", "stop-color": "#fcb13f", "stop-opacity": ".95" }));
-    blade.appendChild(el("stop", { offset: "100%", "stop-color": "#e05c0c", "stop-opacity": ".25" }));
-    defs.appendChild(blade);
-
-    var hub = el("radialGradient", { id: "cvHub" });
-    hub.appendChild(el("stop", { offset: "0%", "stop-color": "#fffbeb" }));
-    hub.appendChild(el("stop", { offset: "45%", "stop-color": "#f5c542" }));
-    hub.appendChild(el("stop", { offset: "100%", "stop-color": "#b45309" }));
-    defs.appendChild(hub);
-
-    svg.appendChild(defs);
-
-    if (full) {
-      var halo = el("circle", { cx: 200, cy: 200, r: 150, fill: "url(#cvGlow)" });
+    if (!mark) {
+      var halo = el("circle", { cx: 200, cy: 200, r: 158, fill: "url(#" + uid + "halo)" });
       halo.setAttribute("class", "chakra-glow");
       svg.appendChild(halo);
     }
 
-    /* ── Ring 1: outer rim with teeth ── */
-    var rimGroup = group("rim");
-    rimGroup.appendChild(el("circle", {
-      cx: 200, cy: 200, r: 168, fill: "none",
-      stroke: "url(#cvRim)", "stroke-width": full ? 2.5 : 10
-    }));
-    if (full) {
-      rimGroup.appendChild(el("circle", {
-        cx: 200, cy: 200, r: 158, fill: "none",
-        stroke: "#9a3412", "stroke-width": 1, "stroke-opacity": ".7"
-      }));
-      /* 48 teeth around the rim — the serrated edge of the discus. */
-      for (var t = 0; t < 48; t++) {
-        var a = (t / 48) * TAU;
-        var p1 = point(158, a);
-        var p2 = point(t % 4 === 0 ? 176 : 168, a);
-        rimGroup.appendChild(el("line", {
-          x1: p1[0].toFixed(1), y1: p1[1].toFixed(1),
-          x2: p2[0].toFixed(1), y2: p2[1].toFixed(1),
-          stroke: t % 4 === 0 ? "#f5c542" : "#ff7a18",
-          "stroke-width": t % 4 === 0 ? 2 : 1,
-          "stroke-opacity": t % 4 === 0 ? ".9" : ".5"
-        }));
-      }
-    }
-    svg.appendChild(rimGroup);
-
-    /* ── Ring 2: the blades ── */
-    var bladeCount = full ? 12 : 8;
-    var bladeGroup = group("blades");
-    for (var b = 0; b < bladeCount; b++) {
-      bladeGroup.appendChild(el("path", {
-        d: bladePath(b, bladeCount, 74, 152, 0.42),
-        fill: "url(#cvBlade)",
-        stroke: "#ff7a18",
-        "stroke-width": full ? 1 : 2,
-        "stroke-opacity": ".55"
-      }));
-    }
-    svg.appendChild(bladeGroup);
-
-    /* ── Ring 3: mid ring with lotus petals ── */
-    var midGroup = group("mid");
-    midGroup.appendChild(el("circle", {
-      cx: 200, cy: 200, r: 96, fill: "none",
-      stroke: "#e05c0c", "stroke-width": full ? 1.6 : 6, "stroke-opacity": ".85"
-    }));
-    if (full) {
-      for (var m = 0; m < 24; m++) {
-        var pm = point(96, (m / 24) * TAU);
-        midGroup.appendChild(el("circle", {
-          cx: pm[0].toFixed(1), cy: pm[1].toFixed(1),
-          r: m % 2 === 0 ? 3.2 : 1.6,
-          fill: m % 2 === 0 ? "#fcb13f" : "#f5c542",
-          "fill-opacity": m % 2 === 0 ? ".9" : ".65"
-        }));
-      }
-    }
-    svg.appendChild(midGroup);
-
-    /* ── Ring 4: inner spokes ── */
-    var innerGroup = group("inner");
-    innerGroup.appendChild(el("circle", {
-      cx: 200, cy: 200, r: 58, fill: "none",
-      stroke: "#fcb13f", "stroke-width": full ? 1.3 : 5, "stroke-opacity": ".8"
-    }));
-    var spokes = full ? 16 : 6;
-    for (var s = 0; s < spokes; s++) {
-      var ang = (s / spokes) * TAU;
-      var i1 = point(26, ang);
-      var i2 = point(58, ang);
-      innerGroup.appendChild(el("line", {
-        x1: i1[0].toFixed(1), y1: i1[1].toFixed(1),
-        x2: i2[0].toFixed(1), y2: i2[1].toFixed(1),
-        stroke: s % 2 === 0 ? "#f5c542" : "#ff7a18",
-        "stroke-width": full ? 1.8 : 3.5,
-        "stroke-opacity": ".85"
-      }));
-    }
-    svg.appendChild(innerGroup);
-
-    /* ── Hub ── */
-    var hubGroup = group(null);
-    hubGroup.setAttribute("data-pulse", "");
-    hubGroup.appendChild(el("circle", {
-      cx: 200, cy: 200, r: full ? 22 : 26, fill: "url(#cvHub)"
-    }));
-    if (full) {
-      hubGroup.appendChild(el("circle", {
-        cx: 200, cy: 200, r: 11, fill: "none",
-        stroke: "#e05c0c", "stroke-width": 1.6, "stroke-opacity": ".75"
-      }));
-    }
-    svg.appendChild(hubGroup);
-
-    /* ── Ring 5: orbiting sparks ── */
-    if (full) {
-      var sparkGroup = group("sparks");
-      for (var k = 0; k < 8; k++) {
-        var ps = point(188, (k / 8) * TAU + 0.2);
-        var spark = el("text", {
-          x: ps[0].toFixed(1), y: ps[1].toFixed(1),
-          "text-anchor": "middle", "dominant-baseline": "central",
-          fill: k % 2 === 0 ? "#f5c542" : "#fcb13f",
-          "font-size": k % 2 === 0 ? 15 : 11
-        });
-        spark.setAttribute("data-flicker", "");
-        spark.style.animationDelay = (k * 0.32).toFixed(2) + "s";
-        spark.textContent = "✦";
-        sparkGroup.appendChild(spark);
-      }
-      svg.appendChild(sparkGroup);
-    }
+    if (full) svg.appendChild(jwala(uid));
+    svg.appendChild(rim(uid, !mark));
+    if (!mark) svg.appendChild(mani());
+    if (full) svg.appendChild(mantra());
+    if (!mark) svg.appendChild(shatkona());
+    svg.appendChild(blades(uid, mark ? 8 : 12, !mark));
+    // The lotus belongs in the mid tier too: without it the yantra triangles
+    // sit over an empty centre and read as a stray shape rather than a layer.
+    if (!mark) svg.appendChild(padma(uid));
+    if (!mark) svg.appendChild(antara());
+    svg.appendChild(spokes(uid, mark ? 6 : 16, !mark));
+    svg.appendChild(bindu(uid, !mark));
+    if (full) svg.appendChild(sparks());
 
     return svg;
   }

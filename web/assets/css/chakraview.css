@@ -155,16 +155,30 @@ code,kbd,.mono{font-family:var(--mono); font-size:.88em}
 /* Block-level, so text-align on an ancestor cannot centre it — it has to
    centre itself. Harmless where the parent is already a centred flex row. */
 .chakra{display:block; overflow:visible; margin-inline:auto}
-.chakra-glow{filter:blur(34px); opacity:.6}
+.chakra-glow{filter:blur(40px); opacity:.55}
 
+/* Ten layers, each on its own clock and alternating direction. Outer rings
+   turn slowly and inner ones quickly, which is what sells the wheel as a
+   solid object with depth rather than one flat image spinning. Periods are
+   deliberately non-multiples so the layers never re-align into lockstep.
+
+   transform-box:fill-box makes transform-origin:center resolve against each
+   group's own bounding box instead of the SVG viewport. */
 .chakra [data-spin]{transform-box:fill-box; transform-origin:center}
-.chakra [data-spin="rim"]      {animation:cv-spin 26s linear infinite}
-.chakra [data-spin="blades"]   {animation:cv-spin 18s linear infinite reverse}
-.chakra [data-spin="mid"]      {animation:cv-spin 12s linear infinite}
-.chakra [data-spin="inner"]    {animation:cv-spin 7s  linear infinite reverse}
-.chakra [data-spin="sparks"]   {animation:cv-spin 34s linear infinite}
-.chakra [data-pulse]           {animation:cv-pulse 3.4s ease-in-out infinite}
-.chakra [data-flicker]         {animation:cv-flicker 2.6s ease-in-out infinite}
+.chakra [data-spin="jwala"]     {animation:cv-spin 46s linear infinite}
+.chakra [data-spin="rim"]       {animation:cv-spin 34s linear infinite reverse}
+.chakra [data-spin="mani"]      {animation:cv-spin 26s linear infinite}
+.chakra [data-spin="mantra"]    {animation:cv-spin 19s linear infinite reverse}
+.chakra [data-spin="blades"]    {animation:cv-spin 15s linear infinite}
+.chakra [data-spin="padma"]     {animation:cv-spin 23s linear infinite reverse}
+.chakra [data-spin="yantra"]    {animation:cv-spin 11s linear infinite}
+/* Nested inside .yantra, so the two triangles visibly counter-rotate. */
+.chakra [data-spin="yantra-rev"]{animation:cv-spin 11s linear infinite reverse}
+.chakra [data-spin="antara"]    {animation:cv-spin 17s linear infinite}
+.chakra [data-spin="inner"]     {animation:cv-spin 8s  linear infinite reverse}
+.chakra [data-spin="sparks"]    {animation:cv-spin 52s linear infinite}
+.chakra [data-pulse]            {animation:cv-pulse 3.4s ease-in-out infinite}
+.chakra [data-flicker]          {animation:cv-flicker 2.6s ease-in-out infinite}
 
 @keyframes cv-spin{to{transform:rotate(360deg)}}
 @keyframes cv-pulse{
