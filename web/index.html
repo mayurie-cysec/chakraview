@@ -50,16 +50,30 @@
   }
 
   /* ── Chakra roster ── */
-  .chakra-card{display:flex; gap:15px; align-items:flex-start}
-  .chakra-card .num{flex-shrink:0; width:38px; height:38px; border-radius:11px;
+  /* Cards carrying a plate lose their padding so the art can bleed to the
+     edges; the text gets its own padding back on .chakra-body. */
+  .card-art{padding:0; overflow:hidden}
+  .chakra-art{display:block; width:100%; height:112px; object-fit:cover;
+    border-bottom:1px solid var(--border);
+    /* The plates span four centuries and three traditions. A shared duotone
+       is baked into the files; this only seats them against the page. */
+    filter:saturate(.95) contrast(1.02);
+    transition:transform .5s var(--ease), filter .4s var(--ease)}
+  .card-art:hover .chakra-art{transform:scale(1.045); filter:saturate(1.08) contrast(1.05)}
+  @media (prefers-reduced-motion:reduce){
+    .chakra-art,.card-art:hover .chakra-art{transition:none; transform:none}
+  }
+  .chakra-body{display:flex; gap:15px; align-items:flex-start; padding:20px 22px 22px}
+  .chakra-body .num{flex-shrink:0; width:38px; height:38px; border-radius:11px;
     display:grid; place-items:center; font-size:12px; font-weight:700;
     letter-spacing:.06em; background:var(--surface); border:1px solid var(--border);
     color:var(--saffron)}
-  .chakra-card h3{font-size:16px; margin:0 0 3px; display:flex; gap:8px;
+  .chakra-body h3{font-size:16px; margin:0 0 3px; display:flex; gap:8px;
     align-items:baseline; flex-wrap:wrap}
-  .chakra-card h3 em{font-style:normal; font-size:11px; letter-spacing:.14em;
+  .chakra-body h3 em{font-style:normal; font-size:11px; letter-spacing:.14em;
     text-transform:uppercase; color:var(--faint)}
-  .chakra-card p{font-size:14px; color:var(--muted); margin:0}
+  .chakra-body p{font-size:14px; color:var(--muted); margin:0}
+  .art-credit{margin:22px 0 0; font-size:13px; color:var(--faint); max-width:70ch}
 
   /* ── Code blocks ── */
   .code{background:var(--void); border:1px solid var(--border);
@@ -176,92 +190,125 @@
       </div>
 
       <div class="grid grid-3">
-        <article class="card chakra-card reveal">
-          <div class="num">I</div>
-          <div>
-            <h3>Shakuni <em>github</em></h3>
-            <p>Organisation repositories, public members, commit-author emails,
-               and authenticated code search for committed credentials.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/shakuni.jpg" width="300" height="112"
+               alt="The Kauravas in council — Pahari painting" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">I</div>
+            <div>
+              <h3>Shakuni <em>github</em></h3>
+              <p>Organisation repositories, public members, commit-author emails, and authenticated code search for committed credentials.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">II</div>
-          <div>
-            <h3>Sanjaya <em>infra</em></h3>
-            <p>Every address the apex answers with, enriched with ASN and
-               organisation, then classified as origin, CDN edge or hyperscaler.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/sanjaya.jpg" width="300" height="112"
+               alt="The blind king Dhritarashtra listens as Sanjaya describes the battle" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">II</div>
+            <div>
+              <h3>Sanjaya <em>infra</em></h3>
+              <p>Every address the apex answers with, enriched with ASN and organisation, then classified as origin, CDN edge or hyperscaler.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">III</div>
-          <div>
-            <h3>Drona <em>dns</em></h3>
-            <p>Full record sweep, SPF and DMARC auditing, DKIM selector
-               probing, SaaS tenants visible in TXT, and a zone-transfer attempt
-               against every nameserver.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/drona.jpg" width="300" height="112"
+               alt="The death of Drona — Razmnama folio" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">III</div>
+            <div>
+              <h3>Drona <em>dns</em></h3>
+              <p>Full record sweep, SPF and DMARC auditing, DKIM selector probing, SaaS tenants visible in TXT, and a zone-transfer attempt against every nameserver.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">IV</div>
-          <div>
-            <h3>Ashwatthama <em>archive</em></h3>
-            <p>The Wayback index, sorted into sensitive extensions, admin paths
-               and the query parameters that map to a known vulnerability class.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/ashwatthama.jpg" width="300" height="112"
+               alt="Bhima fights Ashwatthama — Razmnama folio, 1598" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">IV</div>
+            <div>
+              <h3>Ashwatthama <em>archive</em></h3>
+              <p>The Wayback index, sorted into sensitive extensions, admin paths and the query parameters that map to a known vulnerability class.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">V</div>
-          <div>
-            <h3>Karna <em>subs</em></h3>
-            <p>Eleven passive sources — eight need no API key — merged with a
-               resolved bruteforce, behind wildcard-DNS detection so a wildcard
-               domain cannot inflate the results.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/karna.jpg" width="300" height="112"
+               alt="Karna slays the Kaikeya prince Vishoka — Razmnama folio" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">V</div>
+            <div>
+              <h3>Karna <em>subs</em></h3>
+              <p>Eleven passive sources — eight need no API key — merged with a resolved bruteforce, behind wildcard-DNS detection so a wildcard domain cannot inflate the results.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">VI</div>
-          <div>
-            <h3>Arjuna <em>http</em></h3>
-            <p>Status, title, server and technology fingerprint per host, plus
-               exposed <code>.git</code> and <code>.env</code>, reflected CORS,
-               directory listings and missing security headers.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/arjuna.jpg" width="300" height="112"
+               alt="Arjuna hits the target — Jaipur Razmnama" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">VI</div>
+            <div>
+              <h3>Arjuna <em>http</em></h3>
+              <p>Status, title, server and technology fingerprint per host, plus exposed <code>.git</code> and <code>.env</code>, reflected CORS, directory listings and missing security headers.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">VII</div>
-          <div>
-            <h3>Ekalavya <em>takeover</em></h3>
-            <p>Sixty-plus provider fingerprints. A CNAME alone is never
-               reported — the provider's unclaimed-name response has to confirm
-               it.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/ekalavya.jpg" width="300" height="112"
+               alt="Ekalavya at the shrine he built to Drona" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">VII</div>
+            <div>
+              <h3>Ekalavya <em>takeover</em></h3>
+              <p>Sixty-plus provider fingerprints. A CNAME alone is never reported — the provider's unclaimed-name response has to confirm it.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">VIII</div>
-          <div>
-            <h3>Abhimanyu <em>ports</em></h3>
-            <p>TCP connect scan with banner grabbing, severity-rated against
-               the services that should never face the internet.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/abhimanyu.jpg" width="300" height="112"
+               alt="Uttara and Abhimanyu" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">VIII</div>
+            <div>
+              <h3>Abhimanyu <em>ports</em></h3>
+              <p>TCP connect scan with banner grabbing, severity-rated against the services that should never face the internet.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">IX</div>
-          <div>
-            <h3>Sahadeva <em>js</em></h3>
-            <p>First-party JavaScript only: API routes the application actually
-               calls, and twenty-one credential patterns with placeholder
-               filtering.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/sahadeva.jpg" width="300" height="112"
+               alt="One of the Pandava twins, probably Sahadeva" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">IX</div>
+            <div>
+              <h3>Sahadeva <em>js</em></h3>
+              <p>First-party JavaScript only: API routes the application actually calls, and twenty-one credential patterns with placeholder filtering.</p>
+            </div>
           </div>
         </article>
-        <article class="card chakra-card reveal">
-          <div class="num">X</div>
-          <div>
-            <h3>Brahmastra <em>dorks</em></h3>
-            <p>Dorks built from what the scan found, emitted as live links for
-               Google, GitHub, Shodan, Censys and the certificate logs.</p>
+        <article class="card card-art reveal">
+          <img class="chakra-art" src="assets/img/chakras/brahmastra.jpg" width="300" height="112"
+               alt="Ashwatthama looses the Narayana weapon on the Pandavas — Razmnama folio" loading="lazy" decoding="async">
+          <div class="chakra-body">
+            <div class="num">X</div>
+            <div>
+              <h3>Brahmastra <em>dorks</em></h3>
+              <p>Dorks built from what the scan found, emitted as live links for Google, GitHub, Shodan, Censys and the certificate logs.</p>
+            </div>
           </div>
         </article>
       </div>
+
+      <p class="art-credit">
+        Plates are public-domain works from Wikimedia Commons — Razmnama folios
+        (Mughal, 1598–1620), Pahari painting, and early-twentieth-century book
+        illustration. Full attribution in
+        <a href="https://github.com/mayurie-cysec/chakraview/blob/main/CREDITS.md"
+           target="_blank" rel="noopener noreferrer">CREDITS.md</a>.
+      </p>
     </div>
   </section>
 

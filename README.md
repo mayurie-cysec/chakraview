@@ -242,3 +242,6 @@ python3 tools/check_links.py --external
 ## Licence
 
 MIT.
+
+Artwork on the project site is public domain, sourced from Wikimedia Commons
+and credited in [CREDITS.md](CREDITS.md).
