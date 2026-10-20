@@ -50,20 +50,25 @@
   }
 
   /* ── Chakra roster ── */
-  /* Cards carrying a plate lose their padding so the art can bleed to the
-     edges; the text gets its own padding back on .chakra-body. */
-  .card-art{padding:0; overflow:hidden}
-  .chakra-art{display:block; width:100%; height:112px; object-fit:cover;
-    border-bottom:1px solid var(--border);
+  /* Nine of the ten plates are portrait (median 2:3), so they sit beside the
+     text in a tall frame rather than above it in a strip. A wide banner crop
+     of a full-page miniature throws away most of the painting and cuts the
+     figures in half. */
+  .card-art{padding:0; overflow:hidden; display:flex; align-items:stretch}
+  .chakra-art{flex:0 0 136px; width:136px; align-self:stretch; display:block;
+    object-fit:cover; object-position:center top;
+    border-right:1px solid var(--border);
     /* The plates span four centuries and three traditions. A shared duotone
        is baked into the files; this only seats them against the page. */
     filter:saturate(.95) contrast(1.02);
     transition:transform .5s var(--ease), filter .4s var(--ease)}
-  .card-art:hover .chakra-art{transform:scale(1.045); filter:saturate(1.08) contrast(1.05)}
+  .card-art:hover .chakra-art{transform:scale(1.04); filter:saturate(1.1) contrast(1.05)}
   @media (prefers-reduced-motion:reduce){
     .chakra-art,.card-art:hover .chakra-art{transition:none; transform:none}
   }
-  .chakra-body{display:flex; gap:15px; align-items:flex-start; padding:20px 22px 22px}
+  @media (max-width:520px){.chakra-art{flex-basis:104px; width:104px}}
+  .chakra-body{display:flex; gap:14px; align-items:flex-start; padding:20px 22px 22px;
+    min-width:0}
   .chakra-body .num{flex-shrink:0; width:38px; height:38px; border-radius:11px;
     display:grid; place-items:center; font-size:12px; font-weight:700;
     letter-spacing:.06em; background:var(--surface); border:1px solid var(--border);
@@ -73,6 +78,8 @@
   .chakra-body h3 em{font-style:normal; font-size:11px; letter-spacing:.14em;
     text-transform:uppercase; color:var(--faint)}
   .chakra-body p{font-size:14px; color:var(--muted); margin:0}
+  .grid-art{grid-template-columns:repeat(auto-fit,minmax(412px,1fr))}
+  @media (max-width:460px){.grid-art{grid-template-columns:1fr}}
   .art-credit{margin:22px 0 0; font-size:13px; color:var(--faint); max-width:70ch}
 
   /* ── Code blocks ── */
@@ -189,9 +196,9 @@
         </p>
       </div>
 
-      <div class="grid grid-3">
+      <div class="grid grid-art">
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/shakuni.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/shakuni.jpg" width="136" height="181"
                alt="The Kauravas in council — Pahari painting" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">I</div>
@@ -202,7 +209,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/sanjaya.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/sanjaya.jpg" width="136" height="181"
                alt="The blind king Dhritarashtra listens as Sanjaya describes the battle" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">II</div>
@@ -213,7 +220,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/drona.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/drona.jpg" width="136" height="181"
                alt="The death of Drona — Razmnama folio" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">III</div>
@@ -224,7 +231,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/ashwatthama.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/ashwatthama.jpg" width="136" height="181"
                alt="Bhima fights Ashwatthama — Razmnama folio, 1598" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">IV</div>
@@ -235,7 +242,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/karna.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/karna.jpg" width="136" height="181"
                alt="Karna slays the Kaikeya prince Vishoka — Razmnama folio" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">V</div>
@@ -246,7 +253,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/arjuna.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/arjuna.jpg" width="136" height="181"
                alt="Arjuna hits the target — Jaipur Razmnama" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">VI</div>
@@ -257,7 +264,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/ekalavya.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/ekalavya.jpg" width="136" height="181"
                alt="Ekalavya at the shrine he built to Drona" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">VII</div>
@@ -268,7 +275,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/abhimanyu.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/abhimanyu.jpg" width="136" height="181"
                alt="Uttara and Abhimanyu" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">VIII</div>
@@ -279,7 +286,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/sahadeva.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/sahadeva.jpg" width="136" height="181"
                alt="One of the Pandava twins, probably Sahadeva" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">IX</div>
@@ -290,7 +297,7 @@
           </div>
         </article>
         <article class="card card-art reveal">
-          <img class="chakra-art" src="assets/img/chakras/brahmastra.jpg" width="300" height="112"
+          <img class="chakra-art" src="assets/img/chakras/brahmastra.jpg" width="136" height="181"
                alt="Ashwatthama looses the Narayana weapon on the Pandavas — Razmnama folio" loading="lazy" decoding="async">
           <div class="chakra-body">
             <div class="num">X</div>
