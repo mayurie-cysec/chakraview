@@ -306,7 +306,7 @@ class Handler(BaseHTTPRequestHandler):
     def _json(self, status: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8")
         self._headers(status, "application/json; charset=utf-8", len(body))
-        self.wfile.write(body)
+        self._send_body(body)
 
     def _read_json(self) -> dict | None:
         try:
@@ -344,10 +344,13 @@ class Handler(BaseHTTPRequestHandler):
             ctype = "text/html; charset=utf-8"
         with open(path, "rb") as handle:
             body = handle.read()
-        cache = "no-cache" if path.endswith(".html") else "public, max-age=600"
+        # Never cache. This is a local tool served off the working tree, so a
+        # cached stylesheet or script means edits appear not to have happened
+        # — the browser keeps serving the previous version for the lifetime of
+        # the max-age. There is no bandwidth worth saving over loopback.
         self._headers(status, ctype or "application/octet-stream", len(body),
-                      {"Cache-Control": cache})
-        self.wfile.write(body)
+                      {"Cache-Control": "no-store, must-revalidate"})
+        self._send_body(body)
 
     def _not_found(self) -> None:
         """Serve the themed 404 page rather than the stdlib's error text."""
@@ -358,6 +361,23 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "not found"})
 
     # ── routes ────────────────────────────────────────────────────────────
+
+    def do_HEAD(self) -> None:
+        """Same routing as GET, headers only.
+
+        Without this the base handler answers 501 to any HEAD, which breaks
+        clients that probe a URL before fetching it.
+        """
+        self._head_only = True
+        try:
+            self.do_GET()
+        finally:
+            self._head_only = False
+
+    def _send_body(self, body: bytes) -> None:
+        """Write a response body unless this is a HEAD request."""
+        if not getattr(self, "_head_only", False):
+            self.wfile.write(body)
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
@@ -508,7 +528,7 @@ class Handler(BaseHTTPRequestHandler):
             "Content-Disposition": f'attachment; filename="{safe}"',
             "Cache-Control": "no-store",
         })
-        self.wfile.write(body)
+        self._send_body(body)
 
 
 def serve(host: str = "127.0.0.1", port: int = 8787) -> int:
