@@ -5,8 +5,8 @@
 <h1 align="center">ChakraView</h1>
 
 <p align="center">
-  <b>Strategic reconnaissance formation for security researchers.</b><br>
-  Ten chakras map a target's external attack surface and hand you the report.
+  <b>Open-source reconnaissance framework for security researchers.</b><br>
+  One command, ten modules, a severity-ranked report.
 </p>
 
 <p align="center">
@@ -20,11 +20,12 @@
 
 ---
 
-In the Mahabharata the *chakravyuha* was a formation nobody could read from
-outside. ChakraView turns that around: ten chakras run in order against a
-target, each feeding the next, and what comes out is the map — every
-subdomain, every live host, every dangling CNAME, every secret shipped to the
-browser.
+ChakraView is a reconnaissance framework for security researchers and
+bug-bounty hunters. Point it at a domain and ten modules run in order, each
+feeding the next: subdomain enumeration, HTTP fingerprinting, takeover
+detection, DNS and mail-posture auditing, JavaScript secret mining and port
+scanning. Every finding comes back ranked by severity, with the evidence
+behind it and a remediation line.
 
 > **Authorised testing only.** Six of the ten chakras send traffic to the
 > target: DNS queries, HTTP requests and TCP connections. Run this against
