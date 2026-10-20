@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- item 5: a real description, not a repeat of the title -->
+<title>ChakraView — Strategic Reconnaissance Formation</title>
+<meta name="description" content="ChakraView is an open-source reconnaissance framework for security researchers. Ten chakras map a target's attack surface: subdomain enumeration from eleven passive sources, HTTP fingerprinting, subdomain-takeover detection, DNS and mail-posture auditing, JavaScript secret mining and a generated dork arsenal.">
+<meta name="author" content="mayurie-cysec">
+<meta name="theme-color" content="#09060f">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://github.com/mayurie-cysec/chakraview">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="ChakraView — Strategic Reconnaissance Formation">
+<meta property="og:description" content="Ten chakras map a target's attack surface: passive subdomain enumeration, HTTP fingerprinting, takeover detection, DNS auditing, JavaScript secret mining and a generated dork arsenal.">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- item 3: favicon, with a PNG-free SVG so it stays sharp and tiny -->
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="apple-touch-icon" href="assets/img/favicon.svg">
+
+<link rel="stylesheet" href="assets/css/chakraview.css">
+
+<style>
+  /* ── Hero: the chakra is the page's centre of gravity ── */
+  .hero{position:relative; padding:64px 0 48px; overflow:hidden}
+  .hero-grid{display:grid; gap:44px; align-items:center;
+    grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}
+  .hero h1{font-size:clamp(36px,6.4vw,70px); margin:0 0 20px; letter-spacing:-.035em}
+  .hero .lede{font-size:clamp(16.5px,2vw,19.5px); color:var(--muted);
+    max-width:56ch; margin:0 0 30px}
+  .hero-cta{display:flex; gap:13px; flex-wrap:wrap; margin-bottom:28px}
+  .hero-stats{display:flex; gap:30px; flex-wrap:wrap; padding-top:26px;
+    border-top:1px solid var(--border)}
+  .hero-stats div{min-width:76px}
+  .hero-stats b{display:block; font-size:28px; line-height:1.1;
+    font-variant-numeric:tabular-nums}
+  .hero-stats span{font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--faint)}
+  .hero-art{display:flex; align-items:center; justify-content:center; position:relative}
+  .hero-art::after{content:""; position:absolute; width:74%; aspect-ratio:1;
+    border-radius:50%; background:radial-gradient(circle,rgba(147,51,234,.3),transparent 68%);
+    filter:blur(44px); z-index:-1}
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr; gap:30px}
+    .hero-art{order:-1}
+    .hero-stats{gap:22px}
+  }
+
+  /* ── Chakra roster ── */
+  .chakra-card{display:flex; gap:15px; align-items:flex-start}
+  .chakra-card .num{flex-shrink:0; width:38px; height:38px; border-radius:11px;
+    display:grid; place-items:center; font-size:12px; font-weight:700;
+    letter-spacing:.06em; background:var(--surface); border:1px solid var(--border);
+    color:var(--violet)}
+  .chakra-card h3{font-size:16px; margin:0 0 3px; display:flex; gap:8px;
+    align-items:baseline; flex-wrap:wrap}
+  .chakra-card h3 em{font-style:normal; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--faint)}
+  .chakra-card p{font-size:14px; color:var(--muted); margin:0}
+
+  /* ── Code blocks ── */
+  .code{background:var(--void); border:1px solid var(--border);
+    border-radius:var(--radius); overflow:hidden}
+  .code-head{display:flex; align-items:center; gap:9px; padding:10px 15px;
+    background:var(--surface); border-bottom:1px solid var(--border);
+    font-size:11.5px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--faint)}
+  .code-head .dot{width:9px; height:9px; border-radius:50%; background:var(--border-lit)}
+  .code pre{margin:0; padding:17px 19px; overflow-x:auto; font-family:var(--mono);
+    font-size:13.5px; line-height:1.75; color:var(--text)}
+  .code .c{color:var(--faint)}
+  .code .f{color:var(--lilac)}
+  .code .p{color:var(--gold)}
+
+  /* ── Comparison ── */
+  .v-row{display:grid; gap:14px; grid-template-columns:1fr auto 1fr;
+    align-items:center; padding:13px 0; border-bottom:1px solid rgba(42,27,61,.6)}
+  .v-row:last-child{border-bottom:0}
+  .v-row .old{color:var(--faint); font-size:14px}
+  .v-row .arrow{color:var(--violet); font-size:15px}
+  .v-row .new{font-size:14.5px}
+  @media (max-width:640px){
+    .v-row{grid-template-columns:1fr; gap:4px; padding:14px 0}
+    .v-row .arrow{display:none}
+    .v-row .old{text-decoration:line-through; opacity:.75}
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <nav class="wrap nav" aria-label="Primary">
+    <!-- item 11: the logo links home -->
+    <a class="brand" href="index.html" aria-label="ChakraView home">
+      <img class="brand-mark" src="assets/img/favicon.svg" width="36" height="36"
+           alt="" aria-hidden="true">
+      <span class="brand-text">CHAKRA<span>VIEW</span></span>
+      <span class="brand-ver">v2.0</span>
+    </a>
+    <div class="nav-links">
+      <a href="#chakras">Chakras</a>
+      <a href="#install">Install</a>
+      <a href="#usage" class="opt">Usage</a>
+      <a href="#whats-new" class="opt">What's new</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a class="btn btn-ghost btn-sm" href="https://github.com/mayurie-cysec/chakraview"
+         target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ════════════════════ HERO ════════════════════ -->
+  <section class="hero" data-sparks="22">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow"><span class="spark">✦</span> Open-source reconnaissance</p>
+        <h1>The <span class="gradient-text">Chakravyuha</span>,<br>turned outward.</h1>
+        <p class="lede">
+          In the Mahabharata the chakravyuha was a formation nobody could read
+          from outside. ChakraView runs ten chakras against a target and hands
+          you the map: every subdomain, every live host, every dangling CNAME,
+          every secret shipped to the browser.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#install">
+            <span class="spark">✦</span> Get started
+          </a>
+          <a class="btn btn-ghost" href="dashboard.html">Open the dashboard</a>
+        </div>
+        <div class="hero-stats">
+          <div><b>10</b><span>Chakras</span></div>
+          <div><b>11</b><span>Passive sources</span></div>
+          <div><b>60+</b><span>Takeover fingerprints</span></div>
+          <div><b>4</b><span>Report formats</span></div>
+        </div>
+      </div>
+      <div class="hero-art">
+        <div data-chakra data-size="420" data-detail="full"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ AUTHORISATION ════════════════════ -->
+  <div class="wrap">
+    <p class="notice danger">
+      <strong>Authorised testing only.</strong>
+      Six of the ten chakras send traffic to the target — DNS queries, HTTP
+      requests and TCP connections. Run ChakraView against infrastructure you
+      own or have written permission to test. Use
+      <code>--passive-only</code> when you need reconnaissance that touches
+      third-party sources exclusively.
+    </p>
+  </div>
+
+  <!-- ════════════════════ CHAKRAS ════════════════════ -->
+  <section class="section" id="chakras">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow"><span class="spark">✦</span> The formation</p>
+        <h2>Ten chakras, run in order</h2>
+        <p>
+          Each chakra feeds the next. The archive hands hostnames to
+          enumeration, enumeration hands live hosts to the prober, the prober
+          hands fingerprints to the dork generator. Run the whole formation, or
+          name the ones you want with <code>--only</code>.
+        </p>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="card chakra-card reveal">
+          <div class="num">I</div>
+          <div>
+            <h3>Shakuni <em>github</em></h3>
+            <p>Organisation repositories, public members, commit-author emails,
+               and authenticated code search for committed credentials.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">II</div>
+          <div>
+            <h3>Sanjaya <em>infra</em></h3>
+            <p>Every address the apex answers with, enriched with ASN and
+               organisation, then classified as origin, CDN edge or hyperscaler.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">III</div>
+          <div>
+            <h3>Drona <em>dns</em></h3>
+            <p>Full record sweep, SPF and DMARC auditing, DKIM selector
+               probing, SaaS tenants visible in TXT, and a zone-transfer attempt
+               against every nameserver.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">IV</div>
+          <div>
+            <h3>Ashwatthama <em>archive</em></h3>
+            <p>The Wayback index, sorted into sensitive extensions, admin paths
+               and the query parameters that map to a known vulnerability class.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">V</div>
+          <div>
+            <h3>Karna <em>subs</em></h3>
+            <p>Eleven passive sources merged with a resolved bruteforce, behind
+               wildcard-DNS detection so a wildcard domain cannot inflate the
+               results.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">VI</div>
+          <div>
+            <h3>Arjuna <em>http</em></h3>
+            <p>Status, title, server and technology fingerprint per host, plus
+               exposed <code>.git</code> and <code>.env</code>, reflected CORS,
+               directory listings and missing security headers.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">VII</div>
+          <div>
+            <h3>Ekalavya <em>takeover</em></h3>
+            <p>Sixty-plus provider fingerprints. A CNAME alone is never
+               reported — the provider's unclaimed-name response has to confirm
+               it.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">VIII</div>
+          <div>
+            <h3>Abhimanyu <em>ports</em></h3>
+            <p>TCP connect scan with banner grabbing, severity-rated against
+               the services that should never face the internet.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">IX</div>
+          <div>
+            <h3>Sahadeva <em>js</em></h3>
+            <p>First-party JavaScript only: API routes the application actually
+               calls, and twenty-one credential patterns with placeholder
+               filtering.</p>
+          </div>
+        </article>
+        <article class="card chakra-card reveal">
+          <div class="num">X</div>
+          <div>
+            <h3>Brahmastra <em>dorks</em></h3>
+            <p>Dorks built from what the scan found, emitted as live links for
+               Google, GitHub, Shodan, Censys and the certificate logs.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ INSTALL ════════════════════ -->
+  <section class="section" id="install">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow"><span class="spark">✦</span> Install</p>
+        <h2>Four dependencies, no build step</h2>
+        <p>Python 3.10 or newer. Nothing is compiled and nothing is bundled.</p>
+      </div>
+      <div class="grid grid-2">
+        <div class="code reveal">
+          <div class="code-head"><span class="dot"></span> Install</div>
+<pre><span class="c"># clone and install</span>
+git clone https://github.com/mayurie-cysec/chakraview
+<span class="f">cd</span> chakraview
+pip install -r requirements.txt
+
+<span class="c"># unlock GitHub code search (optional, recommended)</span>
+<span class="f">export</span> GITHUB_TOKEN=<span class="p">ghp_your_readonly_token</span></pre>
+        </div>
+        <div class="code reveal">
+          <div class="code-head"><span class="dot"></span> First scan</div>
+<pre><span class="c"># the whole formation</span>
+python3 chakraview.py -d <span class="p">example.com</span>
+
+<span class="c"># every report format</span>
+python3 chakraview.py -d <span class="p">example.com</span> <span class="f">-f</span> all
+
+<span class="c"># no traffic to the target</span>
+python3 chakraview.py -d <span class="p">example.com</span> <span class="f">--passive-only</span>
+
+<span class="c"># the web dashboard</span>
+python3 chakraview.py <span class="f">--serve</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ USAGE ════════════════════ -->
+  <section class="section" id="usage">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow"><span class="spark">✦</span> Usage</p>
+        <h2>Scope it to what you need</h2>
+        <p>
+          Every chakra can be run alone or skipped. Limits are deliberately
+          conservative by default — <code>--deep</code> raises all of them.
+        </p>
+      </div>
+      <div class="scroll reveal">
+        <table>
+          <caption class="sr">ChakraView command-line options</caption>
+          <thead>
+            <tr><th scope="col">Flag</th><th scope="col">Effect</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>-d, --domain</code></td><td>Target domain. Accepts a bare domain or a full URL.</td></tr>
+            <tr><td><code>-f, --format</code></td><td><code>txt</code>, <code>json</code>, <code>md</code>, <code>html</code>, or <code>all</code>.</td></tr>
+            <tr><td><code>--only</code></td><td>Run only these chakras: <code>--only subs,http,takeover</code></td></tr>
+            <tr><td><code>--skip</code></td><td>Skip these chakras: <code>--skip ports,js</code></td></tr>
+            <tr><td><code>--passive-only</code></td><td>Third-party sources exclusively. Sends nothing to the target.</td></tr>
+            <tr><td><code>--deep</code></td><td>Raise every cap: 100 ports, more hosts probed, more scripts mined.</td></tr>
+            <tr><td><code>-c, --concurrency</code></td><td>Concurrent requests. Default 50.</td></tr>
+            <tr><td><code>-w, --wordlist</code></td><td>Your own subdomain wordlist instead of the built-in list.</td></tr>
+            <tr><td><code>--ports</code></td><td><code>top10</code>, <code>top25</code>, <code>top100</code>, or <code>22,80,443</code>.</td></tr>
+            <tr><td><code>--plain</code></td><td>No colour, no animation — for CI logs and pipes.</td></tr>
+            <tr><td><code>--list-chakras</code></td><td>Print the roster and exit.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ WHAT'S NEW ════════════════════ -->
+  <section class="section" id="whats-new">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow"><span class="spark">✦</span> Version 2.0</p>
+        <h2>What changed</h2>
+        <p>
+          v1 brute-forced a wordlist and animated a progress bar after the work
+          had already finished. Both of those are gone.
+        </p>
+      </div>
+      <div class="card reveal">
+        <div class="v-row">
+          <div class="old">Bruteforce only — about 300 guesses</div>
+          <div class="arrow">→</div>
+          <div class="new">Eleven passive sources merged with the bruteforce,
+            behind wildcard filtering</div>
+        </div>
+        <div class="v-row">
+          <div class="old">A radar bar replayed after the scan ended</div>
+          <div class="arrow">→</div>
+          <div class="new">Progress driven by each module's own counters, with
+            results printed as they are found</div>
+        </div>
+        <div class="v-row">
+          <div class="old">Exited immediately without a GitHub token</div>
+          <div class="arrow">→</div>
+          <div class="new">Runs unauthenticated and says which capability the
+            missing token costs</div>
+        </div>
+        <div class="v-row">
+          <div class="old">No HTTP probing at all</div>
+          <div class="arrow">→</div>
+          <div class="new">Status, title, server, technology fingerprint, CORS,
+            security headers and exposed-file checks</div>
+        </div>
+        <div class="v-row">
+          <div class="old">No takeover detection</div>
+          <div class="arrow">→</div>
+          <div class="new">Sixty-plus provider fingerprints, two-signal
+            confirmation to keep false positives out</div>
+        </div>
+        <div class="v-row">
+          <div class="old">Plain-text report only</div>
+          <div class="arrow">→</div>
+          <div class="new">Text, JSON, Markdown and a self-contained HTML page
+            with severity filtering</div>
+        </div>
+        <div class="v-row">
+          <div class="old">No severity model — everything printed flat</div>
+          <div class="arrow">→</div>
+          <div class="new">Findings carry severity, evidence and remediation,
+            and roll up into a risk score</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════ CTA ════════════════════ -->
+  <section class="section" id="start">
+    <div class="wrap">
+      <div class="card reveal" style="text-align:center; padding:52px 28px"
+           data-sparks="14">
+        <div data-chakra data-size="128" data-detail="full"
+             style="margin:0 auto 22px"></div>
+        <h2 style="font-size:clamp(24px,3.4vw,34px); margin-bottom:12px">
+          Map the formation
+        </h2>
+        <p style="color:var(--muted); max-width:52ch; margin:0 auto 26px">
+          Clone it, point it at something you are allowed to test, and read the
+          report.
+        </p>
+        <div class="hero-cta" style="justify-content:center; margin-bottom:0">
+          <a class="btn btn-gold"
+             href="https://github.com/mayurie-cysec/chakraview"
+             target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+          <a class="btn btn-ghost" href="dashboard.html">Open the dashboard</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ════════════════════ FOOTER ════════════════════ -->
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="index.html" aria-label="ChakraView home">
+          <img class="brand-mark" src="assets/img/favicon.svg" width="30" height="30"
+               alt="" aria-hidden="true">
+          <span class="brand-text" style="font-size:15px">CHAKRA<span>VIEW</span></span>
+        </a>
+        <p style="margin-top:13px; max-width:30ch">
+          Strategic reconnaissance formation for security researchers.
+        </p>
+      </div>
+      <div>
+        <h3>Tool</h3>
+        <ul>
+          <li><a href="#chakras">The ten chakras</a></li>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#usage">Usage</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Project</h3>
+        <ul>
+          <li><a href="https://github.com/mayurie-cysec/chakraview"
+                 target="_blank" rel="noopener noreferrer">Source</a></li>
+          <li><a href="https://github.com/mayurie-cysec/chakraview/issues"
+                 target="_blank" rel="noopener noreferrer">Issues</a></li>
+          <li><a href="https://github.com/mayurie-cysec/chakraview/blob/main/CONTRIBUTING.md"
+                 target="_blank" rel="noopener noreferrer">Contributing</a></li>
+          <li><a href="https://github.com/mayurie-cysec/chakraview/releases"
+                 target="_blank" rel="noopener noreferrer">Releases</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Reference</h3>
+        <ul>
+          <li><a href="https://owasp.org/www-project-web-security-testing-guide/"
+                 target="_blank" rel="noopener noreferrer">OWASP WSTG</a></li>
+          <li><a href="https://github.com/EdOverflow/can-i-take-over-xyz"
+                 target="_blank" rel="noopener noreferrer">can-i-take-over-xyz</a></li>
+          <li><a href="https://owasp.org/www-project-secure-headers/"
+                 target="_blank" rel="noopener noreferrer">OWASP Secure Headers</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <!-- item 8: the year is written by script, so it never goes stale -->
+      <span>© <span data-year>2026</span> ChakraView · MIT licensed</span>
+      <a href="#main">Back to top</a>
+      <span class="right">Authorised reconnaissance only</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/chakra.js"></script>
+<script src="assets/js/site.js"></script>
+</body>
+</html>

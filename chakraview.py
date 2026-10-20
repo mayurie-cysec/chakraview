@@ -1,556 +1,273 @@
+#!/usr/bin/env python3
+"""
+ChakraView — strategic reconnaissance formation.
+
+Ten chakras run in order against one target: GitHub OSINT, infrastructure,
+DNS and mail posture, archive archaeology, subdomain enumeration, HTTP
+probing, takeover detection, port scanning, JavaScript mining and a dork
+arsenal. Findings are collected into one model and written out as text, JSON,
+Markdown or a self-contained HTML page.
+
+    python3 chakraview.py -d example.com
+    python3 chakraview.py -d example.com --deep -f all
+    python3 chakraview.py -d example.com --passive-only
+    python3 chakraview.py --serve
+
+Authorised reconnaissance only. Several chakras send traffic to the target.
+"""
+
+from __future__ import annotations
+
 import argparse
-import sys
+import asyncio
 import os
-import time
-import threading
-import itertools
+import sys
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-try:
-    from modules import shakuni, sanjaya, ashwatthama, karna, brahmastra, shuddhi
-except ImportError as e:
-    print(f"\033[31m[!] Formation Broken: Missing modules. {e}\033[0m")
-    sys.exit(1)
+from core.context import CHAKRA_KEYS, CHAKRAS, PORT_PROFILES, Config  # noqa: E402
+from core.engine import normalise_target, run_scan  # noqa: E402
+from core.report import FORMATS, write_all  # noqa: E402
+from core.ui import TerminalUI  # noqa: E402
 
-# ─────────────────────────────────────────────
-# PALETTE  (warm amber / copper / saffron — no neon)
-# ─────────────────────────────────────────────
-SAFFRON = '\033[38;5;208m'
-COPPER  = '\033[38;5;130m'
-GOLD    = '\033[33m'
-BLOOD   = '\033[31m'
-GREEN   = '\033[38;5;82m'
-DIM     = '\033[2m'
-RESET   = '\033[0m'
-BOLD    = '\033[1m'
-AMBER   = '\033[38;5;172m'
-RUST    = '\033[38;5;166m'
+VERSION = "2.0.0"
 
-# ANSI cursor / screen helpers
-HIDE_CURSOR   = '\033[?25l'
-SHOW_CURSOR   = '\033[?25h'
-SAVE_POS      = '\033[s'
-RESTORE_POS   = '\033[u'
-CLEAR_LINE    = '\033[2K'
-MOVE_UP       = '\033[1A'
+EPILOG = f"""
+chakras (use with --only / --skip):
+  {', '.join(CHAKRA_KEYS)}
 
-# Third-party text (GitHub logins, PTR records, ipinfo orgs, archived URLs)
-# is purified before it reaches the terminal — see modules/shuddhi.py.
-clean = shuddhi.sanitize
+port profiles:
+  {', '.join(PORT_PROFILES)}  (or a comma-separated list: --ports 22,80,443)
+
+environment:
+  GITHUB_TOKEN             unlocks GitHub code search — the chakra that finds
+                           committed credentials. Read-only scope is enough.
+  SECURITYTRAILS_API_KEY   extra passive subdomain source
+  VT_API_KEY               extra passive subdomain source (VirusTotal)
+  LEAKIX_API_KEY           extra passive subdomain source
+  OTX_API_KEY              richer AlienVault OTX passive DNS
+  URLSCAN_API_KEY          higher urlscan.io rate limit
+
+examples:
+  chakraview.py -d example.com
+  chakraview.py -d example.com --deep -f all -o ./reports
+  chakraview.py -d example.com --passive-only          # no traffic to target
+  chakraview.py -d example.com --only subs,http,takeover
+  chakraview.py -d example.com --skip ports,js --plain
+  chakraview.py --serve --port 8787                    # web dashboard
+"""
 
 
-def _write(s):
-    sys.stdout.write(s)
-    sys.stdout.flush()
+def _csv(value: str) -> list[str]:
+    return [item.strip().lower() for item in value.split(",") if item.strip()]
 
 
-# ═══════════════════════════════════════════════════════════════════
-# SUDARSHANA CHAKRA  — 3-ring animated spinner
-# Runs in a background thread; call .stop() to end it.
-# ═══════════════════════════════════════════════════════════════════
-
-# Each ring is a sequence of Unicode "frames" that give a rotation illusion.
-# Outer ring  (slow, forward)
-_OUTER = [
-    "◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━",
-    "━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━",
-    "━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━",
-    "━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━",
-    "━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━",
-    "━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━",
-    "━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━",
-    "━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━━━━━━━━◈━",
-]
-
-# Middle ring  (medium, reverse)
-_MIDDLE_FWD = ['◉', '◎', '⊙', '◎']
-
-# Inner ring  (fast, 8 blades)
-_INNER = ['✦', '✧', '⋆', '✧']
-
-# Full Sudarshana banner (3 lines tall, cycles through blade positions)
-_CHAKRA_FRAMES = [
-    [
-        f"  {AMBER}    ▲    {RESET}",
-        f"  {GOLD}◄  {SAFFRON}⊛{GOLD}  ►{RESET}",
-        f"  {AMBER}    ▼    {RESET}",
-    ],
-    [
-        f"  {AMBER}  ↗   ↑   {RESET}",
-        f"  {GOLD}←  {SAFFRON}⊛{GOLD}  →{RESET}",
-        f"  {AMBER}  ↙   ↓   {RESET}",
-    ],
-    [
-        f"  {AMBER}    ◆    {RESET}",
-        f"  {GOLD}◈  {SAFFRON}✦{GOLD}  ◈{RESET}",
-        f"  {AMBER}    ◆    {RESET}",
-    ],
-    [
-        f"  {AMBER}  ↖   ↑   {RESET}",
-        f"  {GOLD}←  {SAFFRON}⊛{GOLD}  →{RESET}",
-        f"  {AMBER}  ↘   ↓   {RESET}",
-    ],
-]
-
-# Large centred Sudarshana — shown once on boot
-_BIG_CHAKRA = r"""
-        {AM}  ◆  {R}
-    {AM}◈━━━━━━━◆━━━━━━━◈{R}
-  {AM}◆{G}━━━━━{S}╋━━━━━{G}━━━━◆{R}
-{AM}◆{G}━━━━━━━{S}●{G}━━━━━━━{AM}◆{R}
-  {AM}◆{G}━━━━━{S}╋━━━━━{G}━━━━◆{R}
-    {AM}◈━━━━━━━◆━━━━━━━◈{R}
-        {AM}  ◆  {R}"""
-
-
-class ChakraSpinner:
-    """
-    Animated Sudarshana Chakra that spins beside a status message.
-    Usage:
-        sp = ChakraSpinner("Scanning GitHub...")
-        sp.start()
-        # ... do work ...
-        sp.stop("Done")
-    """
-    _BLADES  = ['⊕', '✦', '⊗', '✧', '⊕', '✦', '⊗', '✧']
-    _RING_CW = ['━◈━━━━◈', '━━◈━━━◈', '━━━◈━━◈', '━━━━◈━◈',
-                '━━━━━◈◈', '━━━━◈━◈', '━━━◈━━◈', '━━◈━━━◈']
-    _RING_CC = _RING_CW[::-1]
-
-    def __init__(self, message=''):
-        self.message  = message
-        self._stop_ev = threading.Event()
-        self._thread  = threading.Thread(target=self._spin, daemon=True)
-
-    def start(self):
-        _write(HIDE_CURSOR)
-        self._thread.start()
-        return self
-
-    def stop(self, done_msg=None):
-        self._stop_ev.set()
-        self._thread.join()
-        _write(f'\r{CLEAR_LINE}')
-        if done_msg:
-            print(f'  {GREEN}✓{RESET}  {done_msg}')
-        _write(SHOW_CURSOR)
-
-    def set_message(self, msg):
-        self.message = msg
-
-    def _spin(self):
-        frames = itertools.cycle(range(8))
-        for i in frames:
-            if self._stop_ev.is_set():
-                break
-            blade  = self._BLADES[i]
-            cw     = self._RING_CW[i % len(self._RING_CW)]
-            inner  = f'{SAFFRON}{blade}{RESET}'
-            outer  = f'{AMBER}{cw}{RESET}'
-            line   = (f'\r  {outer} {inner} '
-                      f'{GOLD}{self.message}{RESET}'
-                      f'{DIM}{"." * (i % 4 + 1)}{RESET}   ')
-            _write(line)
-            time.sleep(0.12)
-
-
-# ═══════════════════════════════════════════════════════════════════
-# RADAR BAR — used while karna subdomain scan runs
-# ═══════════════════════════════════════════════════════════════════
-
-_RADAR_SWEEP = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏']
-_RADAR_PULSE = ['·', '•', '◉', '•', '·']
-
-def radar_bar(label, current, total, hits, width=30):
-    """Print a single-line radar progress bar (overwrite with \\r)."""
-    frac    = current / max(total, 1)
-    filled  = int(width * frac)
-    bar     = f"{AMBER}{'━' * filled}{DIM}{'╌' * (width - filled)}{RESET}"
-    pct     = int(frac * 100)
-    sweep_i = current % len(_RADAR_SWEEP)
-    sweep   = f"{GREEN}{_RADAR_SWEEP[sweep_i]}{RESET}"
-    hit_clr = BLOOD if hits else DIM
-    line    = (f'\r  {sweep} {bar} '
-               f'{GOLD}{pct:3d}%{RESET}  '
-               f'{COPPER}{label}{RESET}  '
-               f'{hit_clr}⚔ {hits} hits{RESET}   ')
-    _write(line)
-
-
-# ═══════════════════════════════════════════════════════════════════
-# PARTICLE BURST  — printed once at scan-complete
-# ═══════════════════════════════════════════════════════════════════
-
-_BURST_FRAMES = [
-    # (radius, chars, colour)
-    (1,  '·',  AMBER),
-    (2,  '•',  GOLD),
-    (3,  '◈',  SAFFRON),
-    (4,  '✦',  COPPER),
-    (5,  '·',  DIM),
-]
-
-def particle_burst(width=72):
-    """Animate a brief radial burst in the terminal."""
-    cx = width // 2
-    for r, ch, col in _BURST_FRAMES:
-        line = [' '] * width
-        for pos in [cx - r*2, cx + r*2, cx - r, cx + r]:
-            if 0 <= pos < width:
-                line[pos] = ch
-        _write(f'\r  {col}{"".join(line)}{RESET}')
-        time.sleep(0.07)
-    _write(f'\r{" " * (width + 4)}\r')   # clear
-
-
-def animate_scroll(text, speed=0.015):
-    for char in text:
-        sys.stdout.write(char)
-        sys.stdout.flush()
-        time.sleep(speed)
-    print()
-
-
-# ═══════════════════════════════════════════════════════════════════
-# BORDERS / HEADERS  (unchanged contract, enhanced look)
-# ═══════════════════════════════════════════════════════════════════
-
-def draw_border():
-    print(f"{COPPER}⚔{'━'*71}⚔{RESET}")
-
-def draw_mini_border():
-    print(f"{DIM}  {'─'*69}{RESET}")
-
-def section_header(chakra_num, icon, title, subtitle):
-    print()
-    # Tiny chakra pip beside each header
-    pip = f"{SAFFRON}⊛{RESET}"
-    print(f"  {pip} {BOLD}{GOLD}{icon}  CHAKRA {chakra_num}: {title}{RESET}")
-    print(f"     {DIM}{subtitle}{RESET}")
-    draw_mini_border()
-
-def status_line(label, value, color=None):
-    c = color if color else COPPER
-    print(f"  {c}◈ {label}:{RESET} {clean(value)}")
-
-
-# ═══════════════════════════════════════════════════════════════════
-# BANNER  — with big animated chakra on boot
-# ═══════════════════════════════════════════════════════════════════
-
-def banner():
-    # Big ASCII art (unchanged)
-    art = f"""
-{SAFFRON}{BOLD}
-   ██████╗██╗  ██╗ █████╗ ██╗  ██╗██████╗  █████╗ ██╗   ██╗██╗███████╗██╗    ██╗
-  ██╔════╝██║  ██║██╔══██╗██║ ██╔╝██╔══██╗██╔══██╗██║   ██║██║██╔════╝██║    ██║
-  ██║     ███████║███████║█████╔╝ ██████╔╝███████║██║   ██║██║█████╗  ██║ █╗ ██║
-  ██║     ██╔══██║██╔══██║██╔═██╗ ██╔══██╗██╔══██║╚██╗ ██╔╝██║██╔══╝  ██║███╗██║
-  ╚██████╗██║  ██║██║  ██║██║  ██╗██║  ██║██║  ██║ ╚████╔╝ ██║███████╗╚███╔███╔╝
-   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝ ╚══╝╚══╝
-{COPPER}                    ═══ THE STRATEGIC BATTLE FORMATION ═══
-{DIM}                         Authorized Recon Use Only{RESET}
-    """
-    print(art)
-
-    # Animated Sudarshana on boot — spin for ~1.2 s
-    _write(HIDE_CURSOR)
-    spin_chars = ['⊕','✦','⊗','✧','◈','✦','⊕','⊗']
-    ring_cw    = ['━◈━━◈━━◈','━━◈━━◈━━','━━━◈━━◈━','━━◈━━◈━━']
-    ring_cc    = ring_cw[::-1]
-
-    for i in range(20):
-        blade  = spin_chars[i % len(spin_chars)]
-        outer  = ring_cw[i % len(ring_cw)]
-        inner  = ring_cc[i % len(ring_cc)]
-        label_states = ['Preparing Vyuha...', 'Awakening Shakuni...', 'Arming Brahmastra...', 'Blowing the Shankh...']
-        label  = label_states[(i // 5) % len(label_states)]
-        _write(f'\r  {AMBER}{outer}{RESET}  '
-               f'{SAFFRON}{BOLD}{blade}{RESET}  '
-               f'{AMBER}{inner}{RESET}  '
-               f'{DIM}{label}{RESET}   ')
-        time.sleep(0.08)
-
-    _write(f'\r{CLEAR_LINE}')
-    _write(SHOW_CURSOR)
-
-
-# ═══════════════════════════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════════════════════════
-
-def main():
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog='chakraview',
-        description='ChakraView — Strategic Recon Formation for Security Researchers'
+        prog="chakraview",
+        description="ChakraView — strategic reconnaissance formation for security researchers.",
+        epilog=EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument('-d', '--domain',     required=True,      help='Target domain (e.g. example.com)')
-    parser.add_argument('--no-archive',       action='store_true', help='Skip Wayback Machine scan')
-    parser.add_argument('--no-github',        action='store_true', help='Skip GitHub OSINT')
-    parser.add_argument('--report',           action='store_true', help='Save full report to file')
+
+    target = parser.add_argument_group("target")
+    target.add_argument("-d", "--domain", help="Target domain (example.com, or a full URL)")
+
+    output = parser.add_argument_group("output")
+    output.add_argument("-o", "--output", default="reports", metavar="DIR",
+                        help="Report directory (default: reports)")
+    output.add_argument("-f", "--format", default="txt", metavar="LIST",
+                        help=f"Comma-separated: {', '.join(FORMATS)}, or 'all' (default: txt)")
+    output.add_argument("--no-report", action="store_true",
+                        help="Print to the terminal only, write nothing to disk")
+    output.add_argument("--plain", action="store_true",
+                        help="No colour and no animation — for logs and pipes")
+    output.add_argument("--quiet", action="store_true",
+                        help="Suppress progress; print the summary only")
+    output.add_argument("--no-banner", action="store_true", help="Skip the banner")
+
+    scope = parser.add_argument_group("scope")
+    scope.add_argument("--only", type=_csv, default=[], metavar="LIST",
+                       help="Run only these chakras")
+    scope.add_argument("--skip", type=_csv, default=[], metavar="LIST",
+                       help="Skip these chakras")
+    scope.add_argument("--passive-only", action="store_true",
+                       help="Third-party sources only — sends no traffic to the target")
+    scope.add_argument("--deep", action="store_true",
+                       help="Raise every limit: more ports, more hosts, more scripts")
+
+    tuning = parser.add_argument_group("tuning")
+    tuning.add_argument("-c", "--concurrency", type=int, default=50, metavar="N",
+                        help="Concurrent requests (default: 50)")
+    tuning.add_argument("-t", "--timeout", type=float, default=10.0, metavar="SEC",
+                        help="Per-request timeout (default: 10)")
+    tuning.add_argument("--retries", type=int, default=1, metavar="N",
+                        help="Retries per failed request (default: 1)")
+    tuning.add_argument("-w", "--wordlist", default="", metavar="FILE",
+                        help="Subdomain wordlist (default: built-in curated list)")
+    tuning.add_argument("--ports", default="top25", metavar="PROFILE",
+                        help=f"{', '.join(PORT_PROFILES)} or a comma-separated list")
+    tuning.add_argument("--max-probe-hosts", type=int, default=400, metavar="N",
+                        help="Cap on hosts probed over HTTP (default: 400)")
+    tuning.add_argument("--verify-tls", action="store_true",
+                        help="Verify TLS certificates (off by default — recon hits "
+                             "hosts with broken or self-signed certificates)")
+    tuning.add_argument("--github-token", default="", metavar="TOKEN",
+                        help="GitHub token (prefer the GITHUB_TOKEN env var)")
+
+    web = parser.add_argument_group("web dashboard")
+    web.add_argument("--serve", action="store_true",
+                     help="Serve the landing page and scan dashboard")
+    web.add_argument("--host", default="127.0.0.1", metavar="ADDR",
+                     help="Bind address for --serve (default: 127.0.0.1)")
+    web.add_argument("--port", type=int, default=8787, metavar="PORT",
+                     help="Port for --serve (default: 8787)")
+
+    misc = parser.add_argument_group("misc")
+    misc.add_argument("--list-chakras", action="store_true",
+                      help="List the chakras and exit")
+    misc.add_argument("-V", "--version", action="version",
+                      version=f"ChakraView {VERSION}")
+    return parser
+
+
+def list_chakras() -> None:
+    print(f"\nChakraView {VERSION} — ten chakras\n")
+    for chakra in CHAKRAS:
+        print(f"  {chakra['num']:>5}. {chakra['key']:<9} {chakra['name']:<13} "
+              f"{chakra['sub']}")
+    print("\n  Use --only or --skip with the key in the second column.\n")
+
+
+def resolve_config(args: argparse.Namespace) -> tuple[Config | None, str]:
+    """Validate arguments into a Config, or return an error message."""
+    target = normalise_target(args.domain or "")
+    if not target:
+        return None, f"'{args.domain}' is not a usable domain name."
+    if "." not in target:
+        return None, (f"'{target}' has no dot — ChakraView needs a registrable "
+                      "domain such as example.com.")
+
+    formats = _csv(args.format)
+    if "all" in formats:
+        formats = list(FORMATS)
+    unknown = [f for f in formats if f not in FORMATS]
+    if unknown:
+        return None, (f"unknown report format(s): {', '.join(unknown)}. "
+                      f"Choose from {', '.join(FORMATS)} or 'all'.")
+
+    for name, values in (("--only", args.only), ("--skip", args.skip)):
+        bad = [v for v in values if v not in CHAKRA_KEYS]
+        if bad:
+            return None, (f"{name}: unknown chakra(s) {', '.join(bad)}. "
+                          f"Valid keys: {', '.join(CHAKRA_KEYS)}")
+
+    custom_ports: list[int] = []
+    ports_profile = args.ports.strip().lower()
+    if ports_profile not in PORT_PROFILES:
+        try:
+            custom_ports = [int(p) for p in _csv(args.ports)]
+        except ValueError:
+            return None, (f"--ports: '{args.ports}' is neither a profile "
+                          f"({', '.join(PORT_PROFILES)}) nor a list of port numbers.")
+        out_of_range = [p for p in custom_ports if not 1 <= p <= 65535]
+        if out_of_range:
+            return None, f"--ports: out of range: {out_of_range}"
+
+    if args.wordlist and not os.path.isfile(args.wordlist):
+        return None, f"--wordlist: no such file: {args.wordlist}"
+
+    if args.concurrency < 1:
+        return None, "--concurrency must be at least 1."
+    if args.timeout <= 0:
+        return None, "--timeout must be greater than 0."
+
+    cfg = Config(
+        domain=target,
+        out_dir=args.output,
+        formats=formats,
+        concurrency=args.concurrency,
+        timeout=args.timeout,
+        retries=max(0, args.retries),
+        wordlist=args.wordlist,
+        only=args.only,
+        skip=args.skip,
+        passive_only=args.passive_only,
+        ports_profile=ports_profile if not custom_ports else "custom",
+        custom_ports=custom_ports,
+        max_probe_hosts=args.max_probe_hosts,
+        deep=args.deep,
+        github_token=args.github_token,
+        plain=args.plain,
+        quiet=args.quiet,
+        no_banner=args.no_banner,
+        verify_tls=args.verify_tls,
+    )
+
+    if not cfg.active_chakras():
+        return None, "every chakra is disabled — check --only / --skip."
+    return cfg, ""
+
+
+async def scan(cfg: Config, ui: TerminalUI, write: bool) -> int:
+    ui.banner()
+    ui.target_header(cfg.domain, len(cfg.active_chakras()))
+    ui.start()
+
+    interrupted = False
+    try:
+        result = await run_scan(cfg, progress=ui)
+    except KeyboardInterrupt:
+        ui.stop()
+        ui.error("interrupted — retreating from Kurukshetra.")
+        return 130
+    finally:
+        ui.stop()
+
+    ui.render_results(result)
+
+    if write:
+        try:
+            paths = write_all(result, cfg.out_dir, cfg.formats)
+            ui.report_saved(paths)
+        except OSError as exc:
+            ui.error(f"could not write report: {exc}")
+            return 1
+
+    ui.closing()
+    return 0 if not interrupted else 130
+
+
+def main() -> int:
+    parser = build_parser()
     args = parser.parse_args()
 
-    target = (
-        args.domain.strip().lower()
-        .replace("http://", "")
-        .replace("https://", "")
-        .split('/')[0]
-    )
-    target = clean(target)
+    if args.list_chakras:
+        list_chakras()
+        return 0
 
-    os.system('clear')
-    banner()
+    if args.serve:
+        from server.app import serve
 
-    animate_scroll(
-        f"  {SAFFRON}🚩 Blowing the Shankh... Breaching the first layer of the Vyuha.{RESET}",
-        0.025
-    )
+        return serve(args.host, args.port)
 
-    draw_border()
-    print(f"  {BOLD}{SAFFRON}🚩 TARGET FORTRESS:{RESET}  {BOLD}{GOLD}{target.upper()}{RESET}")
-    print(f"  {DIM}Scan started at: {time.strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
-    draw_border()
+    if not args.domain:
+        parser.print_usage()
+        print("\nchakraview: a target is required — pass -d example.com, "
+              "or --serve for the web dashboard.\n")
+        return 2
 
+    cfg, error = resolve_config(args)
+    if cfg is None:
+        print(f"\nchakraview: {error}\n", file=sys.stderr)
+        return 2
 
-    # ─────────────────────────────────────────────
-    # CHAKRA I — SHAKUNI  (GitHub OSINT)
-    # ─────────────────────────────────────────────
-    section_header("I", "🏹", "SHAKUNI'S STRATEGY",
-                   "Scanning GitHub for architects, repos, and leaked secrets...")
-
-    s_data = {"count": 0, "names": [], "repos": []}
-
-    if not args.no_github:
-        sp = ChakraSpinner("Probing GitHub architects").start()
-        s_data = shakuni.run(target)
-        sp.stop()
-
-        if s_data['count'] not in (0, "Error"):
-            status_line("Architects Identified", str(s_data['count']), SAFFRON)
-
-            if s_data.get('names'):
-                print(f"\n  {SAFFRON}◈ All Architects ({len(s_data['names'])} total):{RESET}")
-                for i, name in enumerate(s_data['names'], 1):
-                    print(f"    {DIM}[{i:03d}]{RESET} {COPPER}{clean(name)}{RESET}")
-
-            if s_data.get('repos'):
-                print(f"\n  {SAFFRON}◈ Repositories / Leaks Found:{RESET}")
-                for repo in s_data['repos'][:8]:
-                    repo = clean(repo)
-                    tag = (f"{BLOOD}[LEAK]{RESET}" if "[LEAK]" in repo
-                           else f"{COPPER}[REPO]{RESET}")
-                    print(f"    {tag} {repo}")
-                if len(s_data['repos']) > 8:
-                    print(f"    {DIM}... and {len(s_data['repos']) - 8} more in report{RESET}")
-        else:
-            status_line("GitHub Layer",
-                        "Silent / Rate-limited. Set GITHUB_TOKEN env var.", BLOOD)
-    else:
-        status_line("GitHub Scan", "Skipped (--no-github)", DIM)
-
-
-    # ─────────────────────────────────────────────
-    # CHAKRA II — SANJAYA  (IP / Infra Shadow)
-    # ─────────────────────────────────────────────
-    section_header("II", "👁 ", "SANJAYA'S DRISHTI",
-                   "Resolving infrastructure, ASN, and CDN detection...")
-
-    sp = ChakraSpinner("Resolving IP & ASN").start()
-    j_data = sanjaya.run(target)
-    sp.stop()
-
-    status_line("IP Address",   j_data.get('ip', 'Unknown'))
-    status_line("Organization", j_data.get('org', 'Unknown'))
-    status_line("Location",     f"{j_data.get('city','?')}, {j_data.get('country','?')}")
-    status_line("Reverse DNS",  j_data.get('reverse_dns', 'None'))
-
-    if j_data.get('cdn'):
-        print(f"\n  {BLOOD}{BOLD}⚠  CDN/WAF DETECTED — Real IP is masked!{RESET}")
-        animate_scroll(f"  {BLOOD}   {clean(j_data.get('observation', ''))}{RESET}", 0.015)
-    else:
-        print(f"\n  {GREEN}✓  Direct IP exposed — No CDN layer detected.{RESET}")
-        status_line("Observation", j_data.get('observation', ''), GREEN)
-
-
-    # ─────────────────────────────────────────────
-    # CHAKRA III — ASHWATTHAMA  (Wayback Archaeology)
-    # ─────────────────────────────────────────────
-    section_header("III", "🏺", "ASHWATTHAMA'S MEMORY",
-                   "Excavating the Wayback Machine for buried secrets...")
-
-    a_data = {"found": False, "paths": [], "note": "Skipped"}
-
-    if not args.no_archive:
-        sp = ChakraSpinner("Excavating archives").start()
-        a_data = ashwatthama.run(target)
-        sp.stop()
-
-        status_line(
-            "Archive Status",
-            f"{'✓ Paths Found' if a_data.get('found') else '✗ Nothing Sensitive'}"
-        )
-        status_line("Note", a_data.get('note', ''))
-
-        if a_data.get('paths'):
-            print(f"\n  {SAFFRON}◈ High-Value Archived Paths:{RESET}")
-            for path in a_data['paths']:
-                print(f"    {BLOOD}📜{RESET} {clean(path)}")
-        else:
-            print(f"  {DIM}  No sensitive paths surfaced from the archives.{RESET}")
-    else:
-        status_line("Archive Scan", "Skipped (--no-archive)", DIM)
-
-
-    # ─────────────────────────────────────────────
-    # CHAKRA IV — KARNA  (Subdomain Recon)
-    # — radar bar printed live via karna's own print,
-    #   we wrap only the section header / summary
-    # ─────────────────────────────────────────────
-    section_header("IV", "🛡 ", "KARNA'S LOGIC",
-                   "Probing critical subdomains and exposed infrastructure...")
-
-    # Patch karna's live-print line to include radar bar style
-    # (karna.run already prints each hit live — we just add a finishing radar)
-    _write(HIDE_CURSOR)
-    k_data = karna.run(target)
-    _write(SHOW_CURSOR)
-
-    # Print final radar sweep animation after karna finishes
-    found_subs = k_data.get('found', [])
-    total_probed = len(karna.CRITICAL_SUBS) if hasattr(karna, 'CRITICAL_SUBS') else 200
-
-    print()
-    for step in range(0, total_probed + 1, max(1, total_probed // 30)):
-        radar_bar("SUBDOMAINS", step, total_probed, len(found_subs))
-        time.sleep(0.01)
-    radar_bar("SUBDOMAINS", total_probed, total_probed, len(found_subs))
-    print()   # newline after bar
-
-    if found_subs:
-        print(f"\n  {BLOOD}{BOLD}◈ {k_data['intelligence']}{RESET}")
-        print(f"\n  {SAFFRON}Subdomain Summary:{RESET}")
-        for i, sub in enumerate(found_subs, 1):
-            proto_color = (GREEN  if sub['proto'] == 'https' else
-                           COPPER if sub['proto'] == 'http'  else DIM)
-            print(
-                f"    {DIM}[{i:03d}]{RESET} "
-                f"{BOLD}{clean(sub['host'])}{RESET}  "
-                f"{proto_color}[{clean(sub['proto']).upper()}]{RESET}  "
-                f"{DIM}→ {clean(sub['ip'])}{RESET}"
-            )
-    else:
-        print(f"  {GREEN}◈ {k_data['intelligence']}{RESET}")
-
-
-    # ─────────────────────────────────────────────
-    # CHAKRA V — BRAHMASTRA  (Google Dorks)
-    # ─────────────────────────────────────────────
-    section_header("V", "🔥", "THE BRAHMASTRA UNLEASHED",
-                   "Generating precision dork payloads for manual recon...")
-
-    animate_scroll(
-        f"  {BLOOD}Reciting ancient mantras... The earth trembles.{RESET}",
-        0.03
-    )
-    print()
-
-    b_data = brahmastra.run(target, techs=s_data.get('names', []))
-
-    for i, dork in enumerate(b_data['dorks'], 1):
-        time.sleep(0.07)
-        print(f"  {BLOOD}[{i:02d}]{RESET} {dork}")
-
-
-    # ─────────────────────────────────────────────
-    # BATTLE SUMMARY TABLE
-    # ─────────────────────────────────────────────
-    print()
-    draw_border()
-    print(f"  {BOLD}{GOLD}📋  BATTLE SUMMARY — {target.upper()}{RESET}")
-    draw_border()
-
-    summary_rows = [
-        ("Architects Found (GitHub)",  str(s_data.get('count', 0)),           SAFFRON),
-        ("Repos / Leaks Detected",     str(len(s_data.get('repos', []))),      BLOOD if s_data.get('repos') else COPPER),
-        ("Target IP",                  clean(j_data.get('ip', 'Unknown')),     COPPER),
-        ("CDN / WAF Detected",         "YES — Real IP masked" if j_data.get('cdn') else "No",
-                                                                               BLOOD if j_data.get('cdn') else GREEN),
-        ("Archive Sensitive Paths",    str(len(a_data.get('paths', []))),      BLOOD if a_data.get('paths') else COPPER),
-        ("Live Critical Subdomains",   str(len(found_subs)),                   BLOOD if found_subs else GREEN),
-        ("Dork Payloads Ready",        str(len(b_data.get('dorks', []))),      SAFFRON),
-    ]
-
-    for label, value, color in summary_rows:
-        print(f"  {DIM}{label:<35}{RESET}  {color}{BOLD}{value}{RESET}")
-
-    draw_border()
-
-
-    # ─────────────────────────────────────────────
-    # PARTICLE BURST  — Brahmastra finale
-    # ─────────────────────────────────────────────
-    print()
-    animate_scroll(f"  {AMBER}Unleashing Brahmastra...{RESET}", 0.03)
-    time.sleep(0.2)
-
-    for _ in range(3):
-        particle_burst(72)
-
-    # Final victory line with slow scroll
-    print()
-    animate_scroll(
-        f"  {BOLD}{SAFFRON}⚔  THE VYUHA IS BREACHED. DATA SECURED. DHARMA PREVAILS.  ⚔{RESET}",
-        0.035
-    )
-    print()
-
-
-    # ─────────────────────────────────────────────
-    # OPTIONAL REPORT SAVE  (unchanged)
-    # ─────────────────────────────────────────────
-    if args.report:
-        safe_target = shuddhi.sanitize_filename(target)
-        report_path = f"chakraview_{safe_target}_{time.strftime('%Y%m%d_%H%M%S')}.txt"
-        with open(report_path, 'w') as f:
-            f.write(f"CHAKRAVIEW REPORT — {target}\n")
-            f.write(f"Scan Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write("=" * 60 + "\n\n")
-
-            f.write("[ SHAKUNI — GitHub OSINT ]\n")
-            f.write(f"Architects: {s_data.get('count', 0)}\n")
-            f.write(f"Names: {', '.join(clean(n) for n in s_data.get('names', []))}\n")
-            f.write("Repos/Leaks:\n")
-            for r in s_data.get('repos', []):
-                f.write(f"  {clean(r)}\n")
-
-            f.write("\n[ SANJAYA — Infrastructure ]\n")
-            f.write(f"IP: {clean(j_data.get('ip'))}\n")
-            f.write(f"Org: {clean(j_data.get('org'))}\n")
-            f.write(f"CDN: {'Yes' if j_data.get('cdn') else 'No'}\n")
-            f.write(f"Reverse DNS: {clean(j_data.get('reverse_dns'))}\n")
-
-            f.write("\n[ ASHWATTHAMA — Archive Paths ]\n")
-            for p in a_data.get('paths', []):
-                f.write(f"  {clean(p)}\n")
-
-            f.write("\n[ KARNA — Live Subdomains ]\n")
-            for sub in found_subs:
-                f.write(f"  {clean(sub['url'])}  [{clean(sub['ip'])}]\n")
-
-            f.write("\n[ BRAHMASTRA — Google Dorks ]\n")
-            for dork in b_data.get('dorks', []):
-                f.write(f"  {dork}\n")
-
-        print(f"\n  {GREEN}{BOLD}[✓] Report saved → {report_path}{RESET}")
-
-    print()
+    try:
+        return asyncio.run(scan(cfg, TerminalUI(cfg), write=not args.no_report))
+    except KeyboardInterrupt:
+        print("\n\n  [!] Interrupted — retreating from Kurukshetra.\n")
+        return 130
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        _write(SHOW_CURSOR)
-        print(f"\n\n  {BLOOD}[!] Aborting... Retreating from Kurukshetra.{RESET}\n")
-        sys.exit(0)
+    sys.exit(main())
