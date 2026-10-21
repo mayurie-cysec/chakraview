@@ -1,4 +1,37 @@
+# Scan output — never commit a report, it contains target data
+reports/
+*.txt.report
+chakraview_*.txt
+chakraview_*.json
+chakraview_*.md
+chakraview_*.html
+
+# Database — accounts, sessions, TOTP secrets, scan history
+chakraview.db
+chakraview.db-wal
+chakraview.db-shm
+*.db
+*.db-wal
+*.db-shm
+
+# Secrets
 .env
-venv/
+*.key
+*.pem
+
+# Python
 __pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editors / OS
 .DS_Store
+.idea/
+.vscode/
+*.swp
