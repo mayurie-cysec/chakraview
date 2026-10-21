@@ -22,6 +22,7 @@ import argparse
 import asyncio
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -123,6 +124,23 @@ def build_parser() -> argparse.ArgumentParser:
     web.add_argument("--port", type=int, default=8787, metavar="PORT",
                      help="Port for --serve (default: 8787)")
 
+    accounts = parser.add_argument_group("accounts (web dashboard)")
+    accounts.add_argument("--create-user", metavar="NAME",
+                          help="Create a dashboard account and enrol it in 2FA")
+    accounts.add_argument("--admin", action="store_true",
+                          help="With --create-user: make the account an administrator")
+    accounts.add_argument("--list-users", action="store_true",
+                          help="List dashboard accounts")
+    accounts.add_argument("--reset-password", metavar="NAME",
+                          help="Set a new password for an account")
+    accounts.add_argument("--reset-2fa", metavar="NAME",
+                          help="Issue a new TOTP secret for an account")
+    accounts.add_argument("--disable-user", metavar="NAME",
+                          help="Disable an account and end its sessions")
+    accounts.add_argument("--enable-user", metavar="NAME", help="Re-enable an account")
+    accounts.add_argument("--db", default="", metavar="PATH",
+                          help="Database file (default: chakraview.db beside this script)")
+
     misc = parser.add_argument_group("misc")
     misc.add_argument("--list-chakras", action="store_true",
                       help="List the chakras and exit")
@@ -137,6 +155,142 @@ def list_chakras() -> None:
         print(f"  {chakra['num']:>5}. {chakra['key']:<9} {chakra['name']:<13} "
               f"{chakra['sub']}")
     print("\n  Use --only or --skip with the key in the second column.\n")
+
+
+def _open_auth(db_path: str):
+    from core.auth import Auth
+    from core.db import Database
+
+    db = Database(db_path)
+    return db, Auth(db)
+
+
+def _prompt_password(username: str) -> str | None:
+    """Ask twice, never echo, and refuse a weak one."""
+    import getpass
+
+    from core.auth import password_problem
+
+    for _ in range(3):
+        first = getpass.getpass("  New password: ")
+        problem = password_problem(first, username)
+        if problem:
+            print(f"  {problem}")
+            continue
+        if first != getpass.getpass("  Confirm password: "):
+            print("  Passwords did not match.")
+            continue
+        return first
+    print("\n  Giving up after three attempts.\n")
+    return None
+
+
+def _show_enrolment(username: str, secret: str) -> None:
+    from core.auth import totp_uri
+
+    print()
+    print("  ── Two-factor enrolment ─────────────────────────────────────")
+    print("  Add this to an authenticator app (Aegis, 1Password, Authy,")
+    print("  Google Authenticator). Enter the key by hand, or paste the URI")
+    print("  if your app accepts one.")
+    print()
+    print(f"    Account : ChakraView:{username}")
+    print(f"    Key     : {secret}")
+    print(f"    Type    : Time-based, SHA1, 6 digits, 30 seconds")
+    print()
+    print(f"    {totp_uri(secret, username)}")
+    print()
+    print("  The first sign-in confirms the enrolment. Until then the key is")
+    print("  shown again at the login screen; after that it is never")
+    print("  disclosed. Store it somewhere safe now.")
+    print("  ─────────────────────────────────────────────────────────────")
+    print()
+
+
+def run_account_command(args: argparse.Namespace) -> int | None:
+    """Handle the account flags. Returns an exit code, or None if none applied."""
+    from core.auth import AuthError, hash_password, new_totp_secret
+
+    wants = (args.create_user or args.list_users or args.reset_password
+             or args.reset_2fa or args.disable_user or args.enable_user)
+    if not wants:
+        return None
+
+    db, auth = _open_auth(args.db)
+
+    if args.list_users:
+        rows = db.query("SELECT username, is_admin, is_active, totp_confirmed,"
+                        " created_at, last_login_at FROM users ORDER BY username")
+        if not rows:
+            print("\n  No accounts yet. Create one:\n"
+                  "      python3 chakraview.py --create-user <name> --admin\n")
+            return 0
+        print(f"\n  {len(rows)} account(s) in {db.path}\n")
+        print(f"  {'USERNAME':<24} {'ROLE':<8} {'STATE':<10} {'2FA':<12} LAST SIGN-IN")
+        for r in rows:
+            last = (time.strftime("%Y-%m-%d %H:%M", time.localtime(r["last_login_at"]))
+                    if r["last_login_at"] else "never")
+            print(f"  {r['username']:<24} {'admin' if r['is_admin'] else 'user':<8} "
+                  f"{'active' if r['is_active'] else 'disabled':<10} "
+                  f"{'confirmed' if r['totp_confirmed'] else 'pending':<12} {last}")
+        print()
+        return 0
+
+    if args.create_user:
+        username = args.create_user.strip()
+        print(f"\n  Creating account '{username}'"
+              f"{' (administrator)' if args.admin else ''} in {db.path}")
+        password = _prompt_password(username)
+        if password is None:
+            return 1
+        try:
+            user = auth.create_user(username, password, is_admin=args.admin)
+        except AuthError as exc:
+            print(f"\n  {exc.message}\n")
+            return 1
+        print(f"\n  Account created.")
+        _show_enrolment(username, user["totp_secret"])
+        return 0
+
+    target = args.reset_password or args.reset_2fa or args.disable_user or args.enable_user
+    row = db.one("SELECT * FROM users WHERE username = ?", (target,))
+    if row is None:
+        print(f"\n  No account named '{target}'.\n")
+        return 1
+
+    if args.reset_password:
+        print(f"\n  Setting a new password for '{target}'")
+        password = _prompt_password(target)
+        if password is None:
+            return 1
+        digest, salt, n, r, p = hash_password(password)
+        db.execute("UPDATE users SET password_hash=?, password_salt=?, kdf_n=?,"
+                   " kdf_r=?, kdf_p=?, failed_attempts=0, locked_until=0 WHERE id=?",
+                   (digest, salt, n, r, p, row["id"]))
+        auth.end_all_sessions(row["id"])
+        print("\n  Password changed. All existing sessions were signed out.\n")
+        return 0
+
+    if args.reset_2fa:
+        secret = new_totp_secret()
+        db.execute("UPDATE users SET totp_secret=?, totp_confirmed=0 WHERE id=?",
+                   (secret, row["id"]))
+        auth.end_all_sessions(row["id"])
+        print(f"\n  New second factor issued for '{target}'. "
+              "All existing sessions were signed out.")
+        _show_enrolment(target, secret)
+        return 0
+
+    if args.disable_user:
+        db.execute("UPDATE users SET is_active=0 WHERE id=?", (row["id"],))
+        auth.end_all_sessions(row["id"])
+        print(f"\n  '{target}' disabled and signed out of every session.\n")
+        return 0
+
+    db.execute("UPDATE users SET is_active=1, failed_attempts=0, locked_until=0"
+               " WHERE id=?", (row["id"],))
+    print(f"\n  '{target}' re-enabled.\n")
+    return 0
 
 
 def resolve_config(args: argparse.Namespace) -> tuple[Config | None, str]:
@@ -246,10 +400,14 @@ def main() -> int:
         list_chakras()
         return 0
 
+    account_exit = run_account_command(args)
+    if account_exit is not None:
+        return account_exit
+
     if args.serve:
         from server.app import serve
 
-        return serve(args.host, args.port)
+        return serve(args.host, args.port, args.db)
 
     if not args.domain:
         parser.print_usage()

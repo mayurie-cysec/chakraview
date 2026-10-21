@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — ChakraView</title>
+<meta name="description" content="Sign in to the ChakraView reconnaissance dashboard. Access requires a password and a time-based second factor from an authenticator app.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0c0705">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/chakraview.css">
+<style>
+  body{display:flex; flex-direction:column; min-height:100vh}
+  main{flex:1; display:grid; place-items:center; padding:40px 0}
+  .signin{width:100%; max-width:430px}
+  .signin-art{text-align:center; margin-bottom:26px}
+  .signin-art .brand-text{font-size:19px; letter-spacing:.18em; display:block;
+    margin-top:12px}
+  .panel{background:linear-gradient(180deg,rgba(42,26,14,.78),rgba(19,12,7,.82));
+    border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px}
+  .panel h1{font-size:21px; margin:0 0 6px}
+  .panel .sub{color:var(--muted); font-size:14px; margin:0 0 22px}
+  .field{margin-bottom:16px}
+  .msg{display:none; border-radius:var(--radius); padding:12px 15px; font-size:14px;
+    margin-bottom:18px; border:1px solid var(--border)}
+  .msg.on{display:block}
+  .msg.err{border-left:3px solid var(--sev-critical);
+    background:rgba(255,46,78,.07); color:#ffb3c0}
+  .msg.ok{border-left:3px solid var(--ok); background:rgba(147,201,67,.07); color:#d7efb0}
+  .btn-full{width:100%}
+  .code-input{font-family:var(--mono); font-size:26px; letter-spacing:.42em;
+    text-align:center; padding:14px}
+  .enrol{border:1px solid var(--border); border-left:3px solid var(--brass);
+    background:rgba(245,197,66,.06); border-radius:var(--radius);
+    padding:16px 18px; margin-bottom:20px; font-size:13.5px; color:var(--muted)}
+  .enrol h2{font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--brass); margin:0 0 10px}
+  .secret{display:block; font-family:var(--mono); font-size:15px; color:var(--marigold);
+    background:var(--void); border:1px solid var(--border); border-radius:9px;
+    padding:11px 13px; margin:10px 0; word-break:break-all; user-select:all}
+  .steps{margin:10px 0 0; padding-left:18px}
+  .steps li{margin-bottom:5px}
+  .back{display:block; text-align:center; margin-top:18px; font-size:13.5px}
+  .foot-note{text-align:center; color:var(--faint); font-size:12.5px; padding:18px 0 28px}
+</style>
+</head>
+<body>
+
+<main>
+  <div class="signin wrap">
+    <div class="signin-art">
+      <div data-chakra data-size="96" data-detail="mid" style="margin:0 auto"></div>
+      <span class="brand-text">CHAKRA<span style="color:var(--saffron)">VIEW</span></span>
+    </div>
+
+    <div class="panel">
+      <div class="msg" id="msg" role="alert"></div>
+
+      <!-- Step 1 -->
+      <form id="form-password" novalidate>
+        <h1>Sign in</h1>
+        <p class="sub">Scan history and running scans are tied to your account.</p>
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username"
+                 required autocapitalize="none" spellcheck="false" autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password"
+                 autocomplete="current-password" required>
+        </div>
+        <button class="btn btn-primary btn-full" type="submit" id="btn-password">
+          Continue
+        </button>
+      </form>
+
+      <!-- Step 2 -->
+      <form id="form-totp" novalidate hidden>
+        <h1>Authentication code</h1>
+        <p class="sub" id="totp-sub">Enter the six-digit code from your
+          authenticator app.</p>
+
+        <div class="enrol" id="enrol" hidden>
+          <h2>✦ First sign-in — set up your authenticator</h2>
+          <p style="margin:0">Add this key to an authenticator app, then enter
+            the code it shows.</p>
+          <code class="secret" id="enrol-secret"></code>
+          <ol class="steps">
+            <li>Open your authenticator and choose to add a key manually.</li>
+            <li>Name it <strong>ChakraView</strong>, paste the key above.</li>
+            <li>Leave it on time-based, SHA1, 6 digits, 30 seconds.</li>
+          </ol>
+          <p style="margin:10px 0 0">This key is shown until the first
+            successful sign-in and never again. Save it somewhere safe.</p>
+        </div>
+
+        <div class="field">
+          <label for="code">Six-digit code</label>
+          <input type="text" id="code" name="code" class="code-input"
+                 inputmode="numeric" autocomplete="one-time-code" maxlength="6"
+                 pattern="[0-9]{6}" required spellcheck="false">
+        </div>
+        <button class="btn btn-primary btn-full" type="submit" id="btn-totp">
+          Sign in
+        </button>
+        <a class="back" href="login.html">Start again</a>
+      </form>
+    </div>
+
+    <p class="foot-note">
+      Authorised reconnaissance only. Every scan is recorded against your
+      account.
+    </p>
+  </div>
+</main>
+
+<script src="assets/js/chakra.js"></script>
+<script src="assets/js/login.js"></script>
+</body>
+</html>

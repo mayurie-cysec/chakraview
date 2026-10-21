@@ -2,7 +2,10 @@
    Dashboard client.
 
    Posts a scan config, then consumes a server-sent-event stream of progress
-   and renders it. Every value from the server reaches the DOM through
+   and renders it. The scan itself lives on the server: this page can be
+   reloaded, navigated away from or closed, and on return it reattaches to
+   whatever is still running and is replayed the events it missed from the
+   last sequence number it saw. Every value from the server reaches the DOM through
    textContent and nodes built by hand, never through innerHTML: scan output
    is attacker-influenced (page titles, service banners, hostnames supplied by
    third-party sources) and must not be able to inject markup into this page.
@@ -16,7 +19,8 @@
   var FAST_SET = ["infra", "dns", "subs", "http", "takeover"];
 
   var chakras = [];
-  var state = { id: null, source: null, running: false, summary: null, filter: "all" };
+  var state = { id: null, source: null, running: false, summary: null,
+              filter: "all", lastSeq: 0, resumed: false };
 
   var $ = function (id) { return document.getElementById(id); };
 
@@ -37,8 +41,7 @@
   /* ── Setup ──────────────────────────────────────────────────────────── */
 
   function loadChakras() {
-    return fetch("/api/chakras")
-      .then(function (r) { return r.json(); })
+    return CV.api("/api/chakras")
       .then(function (data) {
         chakras = data.chakras || [];
         renderPicks();
@@ -590,6 +593,90 @@
 
   /* ── Lifecycle ──────────────────────────────────────────────────────── */
 
+  /* Open the event stream for a scan, asking to be replayed everything after
+     the last sequence we rendered. Used both to follow a scan we just
+     started and to pick one up again after a reload. */
+  function attach(scanId, afterSeq) {
+    state.id = scanId;
+    state.lastSeq = afterSeq || 0;
+    state.running = true;
+    $("btn-start").disabled = true;
+    $("btn-start").textContent = "Running…";
+    show($("btn-stop"), true);
+
+    if (state.source) { state.source.close(); }
+    state.source = new EventSource(
+      "/api/events/" + encodeURIComponent(scanId) + "?after=" + state.lastSeq);
+
+    state.source.onmessage = function (e) {
+      try {
+        var payload = JSON.parse(e.data);
+        if (payload.seq) state.lastSeq = Math.max(state.lastSeq, payload.seq);
+        handle(payload);
+      } catch (err) { /* a malformed frame is not worth tearing down for */ }
+    };
+    state.source.onerror = function () {
+      /* EventSource reconnects by itself and replays via Last-Event-ID. Only
+         treat it as fatal once the scan is no longer running. */
+      if (!state.running) { finish(null); }
+    };
+  }
+
+  /* On load: follow ?scan=<id> if present, otherwise pick up whatever this
+     account still has running. */
+  function resume() {
+    var wanted = new URLSearchParams(location.search).get("scan");
+    return CV.api("/api/history?status=active&limit=5").then(function (data) {
+      var active = data.active || [];
+      var target = wanted
+        ? { id: wanted }
+        : (active.length ? active[0] : null);
+      if (!target) return false;
+
+      return CV.api("/api/scan/" + encodeURIComponent(target.id))
+        .then(function (detail) {
+          var scan = detail.scan;
+          renderRunList();
+          show($("pane-idle"), false);
+          show($("pane-run"), true);
+          $("domain").value = scan.target;
+          $("run-title").textContent =
+            (scan.status === "running" ? "Formation running against "
+                                       : "Scan of ") + scan.target;
+
+          if (detail.summary) {
+            state.summary = detail.summary;
+            renderResults(detail.summary, detail.reports || {});
+          }
+          if (detail.live) {
+            feedCount = 0;
+            $("feed").innerHTML = '<li class="empty"><span class="msg">' +
+              "catching up…</span></li>";
+            attach(scan.id, 0);
+            resumedNote("Reattached to the scan of " + scan.target +
+              " that was already running. Nothing was lost while you were away.");
+          } else {
+            finish(null);
+            if (wanted) {
+              resumedNote("Showing the finished scan of " + scan.target + ".");
+            }
+          }
+          return true;
+        });
+    }).catch(function () { return false; });
+  }
+
+  function resumedNote(text) {
+    var box = $("resumed");
+    if (!box) return;
+    box.textContent = "";
+    var strong = document.createElement("strong");
+    strong.textContent = "Picked up where you left off. ";
+    box.appendChild(strong);
+    box.appendChild(document.createTextNode(text));
+    box.classList.add("on");
+  }
+
   function finish(note) {
     state.running = false;
     $("btn-start").disabled = false;
@@ -630,10 +717,9 @@
     show($("btn-stop"), true);
     state.running = true;
 
-    fetch("/api/scan", {
+    CV.api("/api/scan", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: {
         domain: domain,
         only: keys.length === chakras.length ? [] : keys,
         passive_only: $("passive").checked,
@@ -641,28 +727,12 @@
         ports: $("ports").value,
         concurrency: parseInt($("concurrency").value, 10) || 50,
         formats: formats()
-      })
+      }
     })
-      .then(function (response) {
-        return response.json().then(function (data) {
-          if (!response.ok) throw new Error(data.error || "Request rejected.");
-          return data;
-        });
-      })
       .then(function (data) {
-        state.id = data.id;
         $("run-title").textContent = "Formation running against " + data.target;
-        state.source = new EventSource("/api/events/" + data.id);
-        state.source.onmessage = function (e) {
-          try { handle(JSON.parse(e.data)); } catch (err) { /* ignore a bad frame */ }
-        };
-        state.source.onerror = function () {
-          if (state.running) {
-            message("Lost the event stream. The scan may still be running — "
-              + "check the terminal.", "error");
-          }
-          finish(null);
-        };
+        attach(data.id, 0);
+        history.replaceState({}, "", "?scan=" + encodeURIComponent(data.id));
       })
       .catch(function (err) {
         message(err.message || "Could not start the scan.", "error");
@@ -674,8 +744,8 @@
     if (!state.id) return;
     $("btn-stop").disabled = true;
     $("btn-stop").textContent = "Stopping…";
-    fetch("/api/stop/" + state.id, { method: "POST" })
-      .catch(function () { /* the done event will arrive regardless */ })
+    CV.api("/api/scan/" + encodeURIComponent(state.id) + "/stop", { method: "POST" })
+      .catch(function () { /* the done event arrives regardless */ })
       .then(function () {
         $("btn-stop").disabled = false;
         $("btn-stop").textContent = "Stop";
@@ -717,7 +787,10 @@
   }
 
   function init() {
-    loadChakras();
+    CV.load()
+      .then(loadChakras)
+      .then(resume)
+      .catch(function () { /* redirected to the login page */ });
     $("scan-form").addEventListener("submit", start);
     $("btn-stop").addEventListener("click", stop);
     tabs();

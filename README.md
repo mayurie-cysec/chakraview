@@ -173,17 +173,99 @@ capability each missing key costs.
 
 ## Web dashboard
 
+### First run
+
+The dashboard requires an account. Create one before starting the server:
+
+```bash
+python3 chakraview.py --create-user yourname --admin
+```
+
+It asks for a password twice, then prints a TOTP key. Add that key to an
+authenticator app (Aegis, 1Password, Authy, Google Authenticator) — it is
+shown until your first successful sign-in and never again.
+
 ```bash
 python3 chakraview.py --serve
 ```
 
-Serves a landing page at `http://127.0.0.1:8787/` and a scan console at
-`/dashboard.html`. Pick a target and the chakras you want, watch all ten run
-live over server-sent events, and download the report when it finishes.
+Then sign in at `http://127.0.0.1:8787/login.html`.
+
+### Accounts
+
+| Command | Does |
+|---|---|
+| `--create-user NAME [--admin]` | Create an account and enrol it in 2FA |
+| `--list-users` | Show accounts, roles and 2FA state |
+| `--reset-password NAME` | Set a new password, sign out every session |
+| `--reset-2fa NAME` | Issue a new TOTP key, sign out every session |
+| `--disable-user NAME` | Disable an account immediately |
+| `--enable-user NAME` | Re-enable it |
+
+There is no self-registration. Anyone with an account can scan arbitrary
+hosts through your server, so accounts are created deliberately from the
+command line.
+
+### Scans outlive the page
+
+A scan runs on the server, not in your browser. Every progress event is
+stored with a sequence number, so you can reload the page, open another one,
+or close the tab entirely and the scan carries on. When you come back, the
+dashboard reattaches and replays everything you missed from the last event
+you saw.
+
+`/history.html` lists every scan this account has run:
+
+| Status | Means |
+|---|---|
+| **Pending** | Accepted, not started yet |
+| **Running** | In progress |
+| **Completed** | Finished normally |
+| **Stopped** | Cancelled from the dashboard |
+| **Failed** | Ended on an error, which is recorded against the scan |
+| **Interrupted** | The server restarted mid-scan. A scan runs in a thread, so nothing survives a restart; these are closed out honestly rather than left showing as running forever. |
+
+### Database
+
+SQLite, at `chakraview.db` beside the script, created `0600`. Override with
+`--db /path/to/file`. It holds accounts, sessions and scan history.
+
+Back it up by copying the file while the server is stopped, or with:
+
+```bash
+sqlite3 chakraview.db ".backup 'chakraview-backup.db'"
+```
+
+Do not put it on a synced cloud drive. Sync clients do not honour SQLite's
+file locking, so two writers corrupt the file rather than queueing, and the
+file contains session material and TOTP secrets.
+
+### Security
 
 The server is standard library only — no extra install — and binds to
-loopback. **Whoever can reach the port can start scans against arbitrary
-hosts through it**, so put it behind authentication before binding it wider.
+loopback.
+
+- Passwords are hashed with **scrypt** (N=32768, r=8, p=1), cost parameters
+  stored per row so the defaults can be raised without locking anyone out.
+- **TOTP** is required, verified against RFC 6238, with a one-step drift
+  window. An accepted code is recorded and refused a second time, so
+  observing a code does not let you reuse it.
+- Session cookies are 256-bit random values, `HttpOnly`, `SameSite=Strict`.
+  Only their SHA-256 is stored, so a dump of the database yields no usable
+  cookie.
+- Every state-changing request needs a **CSRF token** the server issued, and
+  the `Origin` is checked independently.
+- Failed logins back off per account and per address. An unknown username
+  costs the same time as a known one, so the endpoint cannot be used to
+  enumerate accounts.
+- **Nothing from the client is trusted.** Identity comes from the session,
+  never from a request body. Scan ownership is filtered in SQL on every read:
+  another account gets a 404 for your scan, your events and your reports.
+- Scan options are re-validated server-side regardless of what the form sent,
+  and loopback, `.internal` and `.local` targets are refused.
+
+**Whoever can reach this port and has an account can scan arbitrary hosts
+through it.** Put TLS and a reverse proxy in front before binding it wider.
 It warns you when you do.
 
 ---

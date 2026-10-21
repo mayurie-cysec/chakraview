@@ -158,12 +158,10 @@
       <span class="brand-ver">v2.0</span>
     </a>
     <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="index.html#chakras" class="opt">Chakras</a>
-      <a href="index.html#usage" class="opt">Usage</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a class="btn btn-ghost btn-sm" href="https://github.com/mayurie-cysec/chakraview"
-         target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+      <a href="index.html" class="opt">Home</a>
+      <a href="dashboard.html">New scan</a>
+      <a href="history.html">History</a>
+      <span data-user-chip style="display:flex;gap:9px;align-items:center"></span>
     </div>
   </nav>
 </header>
@@ -245,6 +243,7 @@
     <!-- ══════════════ OUTPUT ══════════════ -->
     <div>
       <div class="notice danger msg-box" id="msg" role="alert"></div>
+      <div class="notice msg-box" id="resumed" role="status"></div>
 
       <!-- Idle state -->
       <section class="panel" id="pane-idle">
@@ -254,6 +253,8 @@
           <p>
             Enter a domain and run the formation. Progress for all ten chakras
             appears here, and findings stream in as they are discovered.
+            Scans run on the server, so you can reload this page, open another
+            one, or close the tab without stopping one.
           </p>
         </div>
       </section>
@@ -332,6 +333,7 @@
 
 <script src="assets/js/chakra.js"></script>
 <script src="assets/js/site.js"></script>
+<script src="assets/js/session.js"></script>
 <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

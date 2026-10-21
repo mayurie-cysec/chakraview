@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scan history — ChakraView</title>
+<meta name="description" content="Every ChakraView scan run from this account, with its status, risk score and findings. Scans keep running on the server, so a reload or a closed tab never loses one.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0c0705">
+<meta name="color-scheme" content="dark">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/chakraview.css">
+<style>
+  .head-row{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap;
+    padding:30px 0 20px}
+  .head-row h1{font-size:clamp(23px,3.4vw,32px); margin:0}
+  .head-row p{color:var(--muted); margin:6px 0 0; font-size:14.5px}
+  .head-row .right{margin-left:auto; display:flex; gap:10px; flex-wrap:wrap}
+
+  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+  .filters button{font:inherit; font-size:12.5px; cursor:pointer;
+    background:var(--surface); color:var(--muted); border:1px solid var(--border);
+    border-radius:999px; padding:6px 14px}
+  .filters button[aria-pressed="true"]{background:var(--bhagwa); color:#fff;
+    border-color:var(--saffron)}
+  .filters button:hover{color:var(--text); border-color:var(--saffron)}
+
+  .live{border:1px solid var(--border); border-left:3px solid var(--saffron);
+    background:rgba(255,122,24,.06); border-radius:var(--radius);
+    padding:15px 18px; margin-bottom:20px; display:none}
+  .live.on{display:block}
+  .live h2{font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--saffron); margin:0 0 10px}
+  .live-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    font-size:14px}
+  .live-row .target{font-weight:600}
+  .live-row .right{margin-left:auto}
+
+  td .target{font-weight:600; color:var(--text)}
+  td .meta{display:block; color:var(--faint); font-size:12px; margin-top:2px}
+  .risk{font-variant-numeric:tabular-nums}
+  .rowbtn{font:inherit; font-size:12px; cursor:pointer; background:none;
+    color:var(--muted); border:1px solid var(--border); border-radius:7px;
+    padding:4px 9px; margin-right:6px}
+  .rowbtn:hover{color:var(--text); border-color:var(--saffron)}
+  .rowbtn.danger:hover{color:var(--sev-critical); border-color:var(--sev-critical)}
+
+  .empty{text-align:center; padding:56px 20px; color:var(--faint)}
+  .empty p{margin:16px auto 0; max-width:42ch}
+  .pager{display:flex; gap:10px; justify-content:center; align-items:center;
+    margin-top:22px; color:var(--faint); font-size:13.5px}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <nav class="wrap nav" aria-label="Primary">
+    <a class="brand" href="index.html" aria-label="ChakraView home">
+      <img class="brand-mark" src="assets/img/favicon.svg" width="36" height="36"
+           alt="" aria-hidden="true">
+      <span class="brand-text">CHAKRA<span>VIEW</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="dashboard.html">New scan</a>
+      <a href="history.html">History</a>
+      <span data-user-chip style="display:flex;gap:9px;align-items:center"></span>
+    </div>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <div class="head-row">
+    <div>
+      <h1>Scan history</h1>
+      <p id="subtitle">Loading…</p>
+    </div>
+    <div class="right">
+      <a class="btn btn-primary btn-sm" href="dashboard.html">
+        <span class="spark">✦</span> New scan
+      </a>
+    </div>
+  </div>
+
+  <div class="live" id="live" role="status">
+    <h2>✦ Running now</h2>
+    <div id="live-rows"></div>
+  </div>
+
+  <div class="notice msg-box" id="msg" role="alert" style="display:none"></div>
+
+  <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+
+  <div class="scroll" id="table-wrap"></div>
+  <div class="pager" id="pager"></div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-bottom" style="margin-top:0; border-top:0">
+    <span>© <span data-year>2026</span> ChakraView · MIT licensed</span>
+    <a href="index.html">Home</a>
+    <span class="right">Authorised reconnaissance only</span>
+  </div>
+</footer>
+
+<script src="assets/js/chakra.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/session.js"></script>
+<script src="assets/js/history.js"></script>
+</body>
+</html>
