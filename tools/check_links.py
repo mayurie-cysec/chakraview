@@ -249,33 +249,69 @@ def check_page(path: str, pages: dict[str, PageParser]) -> list[str]:
     return problems
 
 
-def check_external(pages: dict[str, PageParser]) -> list[str]:
-    """Verify external URLs resolve. Network-dependent, so opt-in."""
+# A HEAD request is cheap, but plenty of sites answer it badly: some return
+# 404 for a page that serves fine on GET, others rate-limit. Treat these as
+# "ask again with GET" rather than as a broken link.
+_RETRY_WITH_GET = {400, 403, 404, 405, 429, 500, 501, 503, 999}
+
+# Browser-ish UA. Several documentation sites refuse an obvious bot outright,
+# which would otherwise look like a dead link.
+_UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+       "Chrome/125.0 Safari/537.36 ChakraView-LinkCheck/2.0")
+
+
+def _probe(url: str, method: str, timeout: int = 15) -> int:
+    """Return an HTTP status, or 0 if the request did not complete."""
     import urllib.error
     import urllib.request
 
+    request = urllib.request.Request(url, method=method, headers={
+        "User-Agent": _UA,
+        "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+    })
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.status
+    except urllib.error.HTTPError as exc:
+        return exc.code
+    except Exception:
+        return 0
+
+
+def check_external(pages: dict[str, PageParser]) -> list[str]:
+    """Verify external URLs resolve. Network-dependent, so opt-in."""
+    import time
+    from urllib.parse import urlparse as _urlparse
+
     seen: set[str] = set()
     problems: list[str] = []
+    last_hit: dict[str, float] = {}
+
     for page in pages.values():
         for _tag, url in page.links:
             if not is_external(url) or url in seen:
                 continue
             seen.add(url)
-            request = urllib.request.Request(
-                url, method="HEAD",
-                headers={"User-Agent": "ChakraView-LinkCheck/2.0"},
-            )
-            try:
-                with urllib.request.urlopen(request, timeout=12) as response:
-                    if response.status >= 400:
-                        problems.append(f"{url} → HTTP {response.status}")
-            except urllib.error.HTTPError as exc:
-                # Plenty of sites refuse HEAD but serve GET perfectly well.
-                if exc.code in (403, 405, 999):
-                    continue
-                problems.append(f"{url} → HTTP {exc.code}")
-            except Exception as exc:
-                problems.append(f"{url} → {type(exc).__name__}")
+
+            # Space out requests per host so a docs site does not rate-limit
+            # us into reporting its own pages as broken.
+            host = _urlparse(url).netloc
+            wait = 1.0 - (time.monotonic() - last_hit.get(host, 0))
+            if wait > 0:
+                time.sleep(wait)
+            last_hit[host] = time.monotonic()
+
+            status = _probe(url, "HEAD")
+            if status in _RETRY_WITH_GET or status == 0:
+                status = _probe(url, "GET")
+
+            if status == 0:
+                problems.append(f"{url} → no response")
+            elif status == 429:
+                print(f"    (rate-limited, not checked: {url})")
+            elif status >= 400:
+                problems.append(f"{url} → HTTP {status}")
+
     print(f"  checked {len(seen)} external URLs")
     return problems
 

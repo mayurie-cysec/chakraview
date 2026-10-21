@@ -45,21 +45,37 @@ cd chakraview
 pip install -r requirements.txt
 ```
 
-Optional, and worth doing — a read-only GitHub token unlocks code search,
-which is the part that finds committed credentials:
+A GitHub token is needed for one thing only: GitHub code search, which is
+the check that finds committed credentials. GitHub does not allow code search
+without authentication. Every other chakra runs fine without a token, and
+ChakraView tells you in the output when the missing token has cost you
+something.
 
 ```bash
 export GITHUB_TOKEN=ghp_your_readonly_token
 ```
 
-## Quick start
+A read-only token is enough. No scopes need to be granted.
+
+## Run it
+
+ChakraView has two front ends over the same engine. Use whichever suits the
+job.
+
+**Terminal**
 
 ```bash
-python3 chakraview.py -d example.com              # the whole formation
-python3 chakraview.py -d example.com -f all       # every report format
-python3 chakraview.py -d example.com --passive-only
-python3 chakraview.py --serve                     # web dashboard
+python3 chakraview.py -d example.com
 ```
+
+**Dashboard**
+
+```bash
+python3 chakraview.py --serve
+```
+
+Opens on `http://127.0.0.1:8787/`. Pick a target and the chakras you want,
+watch the scan run live, and download the report when it finishes.
 
 <p align="center">
   <img src="demo.gif" alt="ChakraView running against a target" width="900">
@@ -226,6 +242,36 @@ equivalent to the report. Everything externally sourced goes through
 reaches a report.
 
 ---
+
+## References
+
+The checks are drawn from these. Useful whether or not you use ChakraView.
+
+**Methodology**
+
+- [OWASP Web Security Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP API Security Top 10](https://owasp.org/API-Security/editions/2023/en/0x11-t10/)
+- [NIST SP 800-115 — Technical Guide to Information Security Testing](https://csrc.nist.gov/pubs/sp/800/115/final)
+- [PTES — Intelligence Gathering](http://www.pentest-standard.org/index.php/Intelligence_Gathering)
+- [MITRE ATT&CK — Reconnaissance (TA0043)](https://attack.mitre.org/tactics/TA0043/)
+
+**What specific chakras test**
+
+- [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz) — the subdomain-takeover fingerprint reference
+- [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
+- [PortSwigger — CORS misconfiguration](https://portswigger.net/web-security/cors)
+- [RFC 7208](https://www.rfc-editor.org/rfc/rfc7208) — SPF
+- [RFC 7489](https://www.rfc-editor.org/rfc/rfc7489) — DMARC
+- [RFC 6376](https://www.rfc-editor.org/rfc/rfc6376) — DKIM
+- [RFC 6962](https://www.rfc-editor.org/rfc/rfc6962) — Certificate Transparency
+- [CWE-200](https://cwe.mitre.org/data/definitions/200.html) — Exposure of sensitive information
+
+**Related tools worth knowing**
+
+- [OWASP Amass](https://owasp.org/www-project-amass/) — attack-surface mapping
+- [ProjectDiscovery](https://github.com/projectdiscovery) — subfinder, httpx, nuclei
+- [crt.sh](https://crt.sh/) — certificate transparency search
 
 ## Contributing
 

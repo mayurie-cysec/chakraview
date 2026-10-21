@@ -80,7 +80,6 @@
   .chakra-body p{font-size:14px; color:var(--muted); margin:0}
   .grid-art{grid-template-columns:repeat(auto-fit,minmax(412px,1fr))}
   @media (max-width:460px){.grid-art{grid-template-columns:1fr}}
-  .art-credit{margin:22px 0 0; font-size:13px; color:var(--faint); max-width:70ch}
 
   /* ── Code blocks ── */
   .code{background:var(--void); border:1px solid var(--border);
@@ -309,13 +308,6 @@
         </article>
       </div>
 
-      <p class="art-credit">
-        Plates are public-domain works from Wikimedia Commons — Razmnama folios
-        (Mughal, 1598–1620), Pahari painting, and early-twentieth-century book
-        illustration. Full attribution in
-        <a href="https://github.com/mayurie-cysec/chakraview/blob/main/CREDITS.md"
-           target="_blank" rel="noopener noreferrer">CREDITS.md</a>.
-      </p>
     </div>
   </section>
 
@@ -335,22 +327,35 @@ git clone https://github.com/mayurie-cysec/chakraview
 <span class="f">cd</span> chakraview
 pip install -r requirements.txt
 
-<span class="c"># unlock GitHub code search (optional, recommended)</span>
+<span class="c"># GitHub token. Only needed for code search.</span>
+<span class="c"># Everything else runs without it.</span>
 <span class="f">export</span> GITHUB_TOKEN=<span class="p">ghp_your_readonly_token</span></pre>
         </div>
         <div class="code reveal">
-          <div class="code-head"><span class="dot"></span> First scan</div>
-<pre><span class="c"># the whole formation</span>
+          <div class="code-head"><span class="dot"></span> Run it</div>
+<pre><span class="c"># in the terminal</span>
 python3 chakraview.py -d <span class="p">example.com</span>
 
-<span class="c"># every report format</span>
-python3 chakraview.py -d <span class="p">example.com</span> <span class="f">-f</span> all
-
-<span class="c"># no traffic to the target</span>
-python3 chakraview.py -d <span class="p">example.com</span> <span class="f">--passive-only</span>
-
-<span class="c"># the web dashboard</span>
+<span class="c"># in the browser</span>
 python3 chakraview.py <span class="f">--serve</span></pre>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:18px">
+        <div class="card reveal">
+          <h3 style="font-size:16px;margin:0 0 8px">Terminal</h3>
+          <p style="font-size:14px;color:var(--muted);margin:0 0 14px">
+            The full command set, every flag, and output you can pipe.
+          </p>
+          <a class="btn btn-ghost btn-sm" href="#usage">See the options</a>
+        </div>
+        <div class="card reveal">
+          <h3 style="font-size:16px;margin:0 0 8px">Dashboard</h3>
+          <p style="font-size:14px;color:var(--muted);margin:0 0 14px">
+            Pick a target and the chakras you want, watch the scan run live,
+            and download the report when it finishes.
+          </p>
+          <a class="btn btn-ghost btn-sm" href="dashboard.html">Open the dashboard</a>
         </div>
       </div>
     </div>
@@ -363,8 +368,9 @@ python3 chakraview.py <span class="f">--serve</span></pre>
         <p class="eyebrow"><span class="spark">✦</span> Usage</p>
         <h2>Scope it to what you need</h2>
         <p>
-          Every chakra can be run alone or skipped. Limits are deliberately
-          conservative by default — <code>--deep</code> raises all of them.
+          Run any chakra on its own, or skip the ones you do not need.
+          The default limits are set low so a scan stays quick and quiet.
+          Use <code>--deep</code> to raise every one of them.
         </p>
       </div>
       <div class="scroll reveal">
@@ -486,7 +492,7 @@ python3 chakraview.py <span class="f">--serve</span></pre>
           <span class="brand-text" style="font-size:15px">CHAKRA<span>VIEW</span></span>
         </a>
         <p style="margin-top:13px; max-width:30ch">
-          Strategic reconnaissance formation for security researchers.
+          Open-source reconnaissance framework for security researchers.
         </p>
       </div>
       <div>
@@ -512,21 +518,49 @@ python3 chakraview.py <span class="f">--serve</span></pre>
         </ul>
       </div>
       <div>
-        <h3>Reference</h3>
+        <h3>Methodology</h3>
         <ul>
           <li><a href="https://owasp.org/www-project-web-security-testing-guide/"
-                 target="_blank" rel="noopener noreferrer">OWASP WSTG</a></li>
+                 target="_blank" rel="noopener noreferrer">OWASP Testing Guide</a></li>
+          <li><a href="https://owasp.org/www-project-top-ten/"
+                 target="_blank" rel="noopener noreferrer">OWASP Top 10</a></li>
+          <li><a href="https://owasp.org/API-Security/editions/2023/en/0x11-t10/"
+                 target="_blank" rel="noopener noreferrer">OWASP API Top 10</a></li>
+          <li><a href="https://owasp.org/www-project-amass/"
+                 target="_blank" rel="noopener noreferrer">OWASP Amass</a></li>
+          <li><a href="https://csrc.nist.gov/pubs/sp/800/115/final"
+                 target="_blank" rel="noopener noreferrer">NIST SP 800-115</a></li>
+          <li><a href="http://www.pentest-standard.org/index.php/Intelligence_Gathering"
+                 target="_blank" rel="noopener noreferrer">PTES Intelligence Gathering</a></li>
+          <li><a href="https://attack.mitre.org/tactics/TA0043/"
+                 target="_blank" rel="noopener noreferrer">MITRE ATT&amp;CK: Reconnaissance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>What each chakra tests</h3>
+        <ul>
           <li><a href="https://github.com/EdOverflow/can-i-take-over-xyz"
-                 target="_blank" rel="noopener noreferrer">can-i-take-over-xyz</a></li>
+                 target="_blank" rel="noopener noreferrer">Subdomain takeover</a></li>
           <li><a href="https://owasp.org/www-project-secure-headers/"
-                 target="_blank" rel="noopener noreferrer">OWASP Secure Headers</a></li>
+                 target="_blank" rel="noopener noreferrer">Security headers</a></li>
+          <li><a href="https://portswigger.net/web-security/cors"
+                 target="_blank" rel="noopener noreferrer">CORS misconfiguration</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc7208"
+                 target="_blank" rel="noopener noreferrer">RFC 7208 — SPF</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc7489"
+                 target="_blank" rel="noopener noreferrer">RFC 7489 — DMARC</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc6376"
+                 target="_blank" rel="noopener noreferrer">RFC 6376 — DKIM</a></li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc6962"
+                 target="_blank" rel="noopener noreferrer">RFC 6962 — Certificate Transparency</a></li>
+          <li><a href="https://cwe.mitre.org/data/definitions/200.html"
+                 target="_blank" rel="noopener noreferrer">CWE-200 — Information exposure</a></li>
         </ul>
       </div>
     </div>
     <div class="foot-bottom">
       <!-- item 8: the year is written by script, so it never goes stale -->
       <span>© <span data-year>2026</span> ChakraView · MIT licensed</span>
-      <a href="#main">Back to top</a>
       <span class="right">Authorised reconnaissance only</span>
     </div>
   </div>
